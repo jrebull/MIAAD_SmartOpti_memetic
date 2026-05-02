@@ -1,0 +1,72 @@
+{
+  "n_runs": 5,
+  "seeds": [
+    2026,
+    2027,
+    2028,
+    2029,
+    2030
+  ],
+  "costo": {
+    "min": 705.045751979848,
+    "max": 813.2283405331957,
+    "media": 763.1671238304631,
+    "mediana": 752.4017585177529,
+    "std": 42.15252744294278
+  },
+  "vehiculos": {
+    "min": 6.0,
+    "max": 6.0,
+    "media": 6.0,
+    "mediana": 6.0,
+    "std": 0.0
+  },
+  "vehiculos_distribucion": [
+    6,
+    6,
+    6,
+    6,
+    6
+  ],
+  "tiempo_segundos": {
+    "min": 29.29782858400722,
+    "max": 30.985454500012565,
+    "media": 30.06863109160331,
+    "mediana": 30.1290008329961,
+    "std": 0.5985497509216448
+  },
+  "generacion_mejor": {
+    "min": 89.0,
+    "max": 100.0,
+    "media": 97.4,
+    "mediana": 100.0,
+    "std": 4.2708313008125245
+  },
+  "iteraciones_tabu_total": 307950,
+  "aceptaciones_no_mejorantes_tabu_total": 125536,
+  "utilizacion_promedio_pct": 91.33333333333333,
+  "utilizacion_distribucion_pct": [
+    91.33333333333333,
+    91.33333333333333,
+    91.33333333333333,
+    91.33333333333333,
+    91.33333333333333
+  ],
+  "demanda_total_instancia": 548,
+  "experimento_id": "caso_1",
+  "nombre": "Escala Media",
+  "instancia": "data/raw/caso_1_50_clientes_q100.csv",
+  "instancia_hash": "a51945f4bb03fad887cf2bdf5a25202b",
+  "capacidad": 100,
+  "parametros": {
+    "generaciones": 100,
+    "tamano_poblacion": 60,
+    "torneo_k": 3,
+    "prob_tabu": 0.35,
+    "iter_tabu": 30,
+    "tenencia": 7,
+    "sample_size": 25,
+    "mutacion_prob": 0.0
+  },
+  "fallos": []
+}

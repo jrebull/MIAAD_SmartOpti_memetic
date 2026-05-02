@@ -106,7 +106,18 @@ npm run preview      # previsualización
 
 ## Resultados resumidos
 
-> Pendiente: la tabla con costos finales por escenario se inserta automáticamente cuando `make experiments` termine.
+Campaña ejecutada el 2026-05-02 sobre macOS 25.5 / Python 3.14 (≈31 minutos totales en serie).
+
+| Escenario                    | Mejor    | Media    | Std    | Vehíc. | Útil. % | Tiempo medio |
+|------------------------------|---------:|---------:|-------:|-------:|--------:|-------------:|
+| Caso 1 — Escala Media        |   705.05 |   763.17 |  42.15 |    6.0 |    91.3 |   30.07 s    |
+| Caso 2 — Alta Densidad       |  3063.66 |  3099.86 |  18.21 |   38.0 |    89.7 |  310.66 s    |
+| Caso 3 — Consolidación       |   951.52 |  1035.93 |  43.42 |    4.0 |    93.0 |   31.37 s    |
+
+Observaciones:
+- El **Caso 2** es ~10× más caro de calcular que los otros (5 minutos por seed) por la cantidad de rutas que la capacidad pequeña fuerza (38 vehículos), aunque su desviación estándar es la **menor** (18.21) porque casi cualquier solución razonable converge al mismo número de vehículos.
+- El **Caso 3** alcanza 93 % de utilización con sólo 4 vehículos: cuando la capacidad es generosa, el algoritmo consolida con éxito.
+- Todas las soluciones reportadas pasan el validador `feasibility.py` (cobertura única, capacidad respetada, costo recalculado coincide).
 
 ## Referencias
 

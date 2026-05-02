@@ -4,6 +4,11 @@ Prompts/
 memoryua/
 *.memory*
 .memory/
+.claude/
+
+# --- Logs de runners (efímeros, regenerables) ---
+data/results/_run_log.txt
+data/results/*.log
 
 # --- Variables de entorno ---
 .env

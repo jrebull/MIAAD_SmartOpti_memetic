@@ -1,0 +1,72 @@
+{
+  "n_runs": 5,
+  "seeds": [
+    2026,
+    2027,
+    2028,
+    2029,
+    2030
+  ],
+  "costo": {
+    "min": 3063.656024375818,
+    "max": 3111.088257116345,
+    "media": 3099.8560516167045,
+    "mediana": 3109.4483841300466,
+    "std": 18.206741561742398
+  },
+  "vehiculos": {
+    "min": 38.0,
+    "max": 38.0,
+    "media": 38.0,
+    "mediana": 38.0,
+    "std": 0.0
+  },
+  "vehiculos_distribucion": [
+    38,
+    38,
+    38,
+    38,
+    38
+  ],
+  "tiempo_segundos": {
+    "min": 303.4526308340137,
+    "max": 316.0872913749772,
+    "media": 310.6617587084067,
+    "mediana": 311.9914656250039,
+    "std": 4.2304499863430225
+  },
+  "generacion_mejor": {
+    "min": 93.0,
+    "max": 149.0,
+    "media": 121.2,
+    "mediana": 122.0,
+    "std": 23.327237298917332
+  },
+  "iteraciones_tabu_total": 931840,
+  "aceptaciones_no_mejorantes_tabu_total": 239035,
+  "utilizacion_promedio_pct": 89.73684210526316,
+  "utilizacion_distribucion_pct": [
+    89.73684210526316,
+    89.73684210526316,
+    89.73684210526316,
+    89.73684210526316,
+    89.73684210526316
+  ],
+  "demanda_total_instancia": 1023,
+  "experimento_id": "caso_2",
+  "nombre": "Alta Densidad / Rutas Cortas",
+  "instancia": "data/raw/caso_2_100_clientes_q30.csv",
+  "instancia_hash": "651f345e5a185ff038454c12589963fc",
+  "capacidad": 30,
+  "parametros": {
+    "generaciones": 150,
+    "tamano_poblacion": 80,
+    "torneo_k": 3,
+    "prob_tabu": 0.45,
+    "iter_tabu": 35,
+    "tenencia": 9,
+    "sample_size": 35,
+    "mutacion_prob": 0.0
+  },
+  "fallos": []
+}

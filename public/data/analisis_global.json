@@ -1,0 +1,80 @@
+{
+  "n_escenarios": 3,
+  "tabla_resumen": [
+    {
+      "id": "caso_1",
+      "nombre": "Escala Media",
+      "n_runs": 5,
+      "costo_mejor": 705.045751979848,
+      "costo_media": 763.1671238304631,
+      "costo_std": 42.15252744294278,
+      "vehiculos_mejor": 6,
+      "vehiculos_media": 6.0,
+      "utilizacion_pct": 91.33333333333333,
+      "tiempo_media_s": 30.06863109160331,
+      "iteraciones_tabu_total": 307950,
+      "no_mejorantes_total": 125536
+    },
+    {
+      "id": "caso_2",
+      "nombre": "Alta Densidad / Rutas Cortas",
+      "n_runs": 5,
+      "costo_mejor": 3063.656024375818,
+      "costo_media": 3099.8560516167045,
+      "costo_std": 18.206741561742398,
+      "vehiculos_mejor": 38,
+      "vehiculos_media": 38.0,
+      "utilizacion_pct": 89.73684210526316,
+      "tiempo_media_s": 310.6617587084067,
+      "iteraciones_tabu_total": 931840,
+      "no_mejorantes_total": 239035
+    },
+    {
+      "id": "caso_3",
+      "nombre": "Rutas de Consolidación",
+      "n_runs": 5,
+      "costo_mejor": 951.5194177834808,
+      "costo_media": 1035.9303274486037,
+      "costo_std": 43.421602808992695,
+      "vehiculos_mejor": 4,
+      "vehiculos_media": 4.0,
+      "utilizacion_pct": 93.0,
+      "tiempo_media_s": 31.36834472499904,
+      "iteraciones_tabu_total": 262425,
+      "no_mejorantes_total": 95323
+    }
+  ],
+  "comparativo_inter_escenarios": {
+    "ok": true,
+    "ranking_por_costo_mejor": [
+      "caso_1",
+      "caso_3",
+      "caso_2"
+    ],
+    "spread_costo_mejor": 2358.6102723959702,
+    "media_de_medias_costo": 1632.9845009652572
+  },
+  "costos_por_escenario": {
+    "Escala Media": [
+      752.4017585177529,
+      813.2283405331957,
+      705.045751979848,
+      809.3689134374811,
+      735.7908546840375
+    ],
+    "Alta Densidad / Rutas Cortas": [
+      3063.656024375818,
+      3109.4483841300466,
+      3105.240852320345,
+      3111.088257116345,
+      3109.846740140969
+    ],
+    "Rutas de Consolidación": [
+      1037.8095364594321,
+      1067.1918458075818,
+      1063.4156252203281,
+      951.5194177834808,
+      1059.7152119721957
+    ]
+  }
+}

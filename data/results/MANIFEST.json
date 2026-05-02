@@ -1,0 +1,53 @@
+{
+  "git_commit_hash": "78a9003",
+  "versiones": {
+    "python": "3.14.2",
+    "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8"
+  },
+  "instancias_versionadas": [
+    {
+      "filename": "instancia_base_25_q50.csv",
+      "md5_versionada": "814dbef1d6f6738f51c79760d38600b0",
+      "md5_regenerada": "814dbef1d6f6738f51c79760d38600b0",
+      "ok": true
+    },
+    {
+      "filename": "caso_1_50_clientes_q100.csv",
+      "md5_versionada": "a51945f4bb03fad887cf2bdf5a25202b",
+      "md5_regenerada": "a51945f4bb03fad887cf2bdf5a25202b",
+      "ok": true
+    },
+    {
+      "filename": "caso_2_100_clientes_q30.csv",
+      "md5_versionada": "651f345e5a185ff038454c12589963fc",
+      "md5_regenerada": "651f345e5a185ff038454c12589963fc",
+      "ok": true
+    },
+    {
+      "filename": "caso_3_75_clientes_q200.csv",
+      "md5_versionada": "474ada38607c1208795eb977504f1f42",
+      "md5_regenerada": "474ada38607c1208795eb977504f1f42",
+      "ok": true
+    }
+  ],
+  "runs_verificados": [
+    {
+      "experimento": "caso_1",
+      "seed": 2026,
+      "costo_original": 752.4017585177529,
+      "costo_reproducido": 752.4017585177529,
+      "ok": true
+    },
+    {
+      "experimento": "caso_2",
+      "seed": 2026,
+      "costo_original": 3063.656024375818,
+      "costo_reproducido": 3063.656024375818,
+      "ok": true
+    }
+  ]
+}
