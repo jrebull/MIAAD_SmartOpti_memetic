@@ -1,21 +1,5 @@
 <script setup lang="ts">
-const { data: resumen } = await useFetch<{
-  n_escenarios: number;
-  escenarios: Array<{
-    id: string;
-    nombre: string;
-    costo_mejor?: number;
-    costo_media?: number;
-    costo_std?: number;
-    vehiculos_mejor?: number;
-    vehiculos_media?: number;
-    utilizacion_pct?: number;
-    tiempo_media_s?: number;
-    n_runs?: number;
-  }>;
-}>("/data/resumen_experimentos.json", {
-  default: () => ({ n_escenarios: 0, escenarios: [] }),
-});
+import resumen from "~/assets/data/resumen_experimentos.json";
 </script>
 
 <template>

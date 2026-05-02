@@ -25,6 +25,7 @@ RESULTS = ROOT / "data" / "results"
 FIG_DIR = ROOT / "reports" / "figures"
 PUBLIC_DATA = ROOT / "public" / "data"
 PUBLIC_IMG = ROOT / "public" / "images"
+ASSETS_DATA = ROOT / "assets" / "data"  # copia inlinable durante el build Vite
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger("exportar_web")
@@ -37,6 +38,7 @@ def main() -> int:
 
     PUBLIC_DATA.mkdir(parents=True, exist_ok=True)
     PUBLIC_IMG.mkdir(parents=True, exist_ok=True)
+    ASSETS_DATA.mkdir(parents=True, exist_ok=True)
 
     agregados = cargar_agregados(RESULTS)
     if not agregados:
@@ -48,10 +50,10 @@ def main() -> int:
         "n_escenarios": len(agregados),
         "escenarios": filas,
     }
-    (PUBLIC_DATA / "resumen_experimentos.json").write_text(
-        json.dumps(resumen, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-    log.info("✓ public/data/resumen_experimentos.json")
+    payload = json.dumps(resumen, indent=2, ensure_ascii=False) + "\n"
+    (PUBLIC_DATA / "resumen_experimentos.json").write_text(payload, encoding="utf-8")
+    (ASSETS_DATA / "resumen_experimentos.json").write_text(payload, encoding="utf-8")
+    log.info("✓ resumen_experimentos.json (public + assets)")
 
     for exp_id, ag in agregados.items():
         # Detalle por escenario para la página individual.
@@ -72,10 +74,10 @@ def main() -> int:
         mejor = RESULTS / exp_id / "mejor_run.json"
         if mejor.exists():
             detalle["mejor_run"] = json.loads(mejor.read_text(encoding="utf-8"))
-        (PUBLIC_DATA / f"{exp_id}.json").write_text(
-            json.dumps(detalle, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
-        log.info("✓ public/data/%s.json", exp_id)
+        payload_exp = json.dumps(detalle, indent=2, ensure_ascii=False) + "\n"
+        (PUBLIC_DATA / f"{exp_id}.json").write_text(payload_exp, encoding="utf-8")
+        (ASSETS_DATA / f"{exp_id}.json").write_text(payload_exp, encoding="utf-8")
+        log.info("✓ %s.json (public + assets)", exp_id)
 
     # Imágenes (las copiadas, todas opcionales según existan).
     for img_name in [

@@ -7,6 +7,13 @@ export default defineNuxtConfig({
   ssr: true,
   nitro: {
     preset: "static",
+    prerender: {
+      // Rutas dinámicas /escenarios/[id] no se descubren por crawl si no hay link
+      // estático en otra página crawleable. Las declaramos explícitamente para
+      // que Netlify sirva HTML estático en visitas directas.
+      routes: ["/escenarios/caso_1", "/escenarios/caso_2", "/escenarios/caso_3"],
+      crawlLinks: true,
+    },
   },
   app: {
     head: {

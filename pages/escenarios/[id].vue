@@ -1,36 +1,18 @@
 <script setup lang="ts">
+import caso_1 from "~/assets/data/caso_1.json";
+import caso_2 from "~/assets/data/caso_2.json";
+import caso_3 from "~/assets/data/caso_3.json";
+
 const route = useRoute();
 const id = String(route.params.id);
 
-interface MejorRun {
-  seed: number;
-  costo_final: number;
-  num_vehiculos: number;
-  rutas: number[][];
-  cargas: number[];
-  configuracion: Record<string, unknown>;
-  tiempo_ejecucion: number;
-  generacion_mejor: number;
-}
-
-interface Detalle {
-  id: string;
-  nombre: string;
-  instancia?: string;
-  capacidad?: number;
-  n_runs?: number;
-  costo?: { min?: number; max?: number; media?: number; mediana?: number; std?: number };
-  vehiculos?: { min?: number; max?: number; media?: number; mediana?: number; std?: number };
-  tiempo_segundos?: { media?: number };
-  utilizacion_promedio_pct?: number;
-  parametros?: Record<string, unknown>;
-  demanda_total_instancia?: number;
-  mejor_run?: MejorRun;
-}
-
-const { data: detalle, error } = await useFetch<Detalle>(`/data/${id}.json`, {
-  default: () => null,
-});
+// Mapa estático: importes inlinados durante el build de Vite, sin fetch en runtime.
+const detalleMap: Record<string, unknown> = {
+  caso_1,
+  caso_2,
+  caso_3,
+};
+const detalle = detalleMap[id] as any;
 
 function fmt(x?: number, dec = 2): string {
   if (x === undefined || x === null || isNaN(x as number)) return "—";
