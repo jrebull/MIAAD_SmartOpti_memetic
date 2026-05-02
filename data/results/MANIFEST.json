@@ -1,5 +1,5 @@
 {
-  "git_commit_hash": "78a9003",
+  "git_commit_hash": "838b03f",
   "versiones": {
     "python": "3.14.2",
     "platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
@@ -47,6 +47,13 @@
       "seed": 2026,
       "costo_original": 3063.656024375818,
       "costo_reproducido": 3063.656024375818,
+      "ok": true
+    },
+    {
+      "experimento": "caso_3",
+      "seed": 2026,
+      "costo_original": 1037.8095364594321,
+      "costo_reproducido": 1037.8095364594321,
       "ok": true
     }
   ]
