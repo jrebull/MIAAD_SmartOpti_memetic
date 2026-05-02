@@ -1,0 +1,38 @@
+\section{Metodología}
+\label{sec:metodologia}
+
+\subsection{Implementación}
+
+El sistema se desarrolla en Python 3.11+ con NumPy, sin recurrir a librerías de optimización VRP externas (OR-Tools, PyVRP, VRPy). Cada componente reside en un módulo independiente y testable de \texttt{src/memetico\_cvrp/}:
+
+\begin{itemize}
+    \item \texttt{data.py} — Generación y carga de instancias (CSV deterministas).
+    \item \texttt{distance.py} — Matriz de distancias precalculada vectorizada con \texttt{np.hypot}.
+    \item \texttt{split.py} — Decodificador Giant Tour $\to$ rutas factibles.
+    \item \texttt{genetic.py} — Población inicial, torneo, OX (con \texttt{np.random.Generator} inyectado).
+    \item \texttt{tabu.py} — Búsqueda Tabú con muestreo de vecinos, tenencia y aspiración.
+    \item \texttt{memetic.py} — Orquestador con elitismo y caché de fitness.
+    \item \texttt{feasibility.py} — Validador blindado de soluciones.
+\end{itemize}
+
+La cobertura de pruebas unitarias supera el 80\% en los módulos críticos (\texttt{split}, \texttt{genetic}, \texttt{tabu}, \texttt{memetic}, \texttt{feasibility}), con tests parametrizados para distintos tamaños de instancia.
+
+\subsection{Representación cromosómica: ejemplo}
+
+Sea $N = 5$ clientes con demandas $q = (8, 4, 6, 3, 7)$ y capacidad $Q = 12$. Considérese el cromosoma $\pi = (1, 3, 4, 2, 5)$. El decodificador Split lo procesa así:
+
+\begin{enumerate}
+    \item Vehículo 1 abre en el depósito, toma cliente 1 (carga 8). Cliente 3 sumaría $8 + 6 = 14 > 12$: cierra ruta 1.
+    \item Vehículo 2 toma cliente 3 (carga 6), luego cliente 4 (carga 9). Cliente 2 sumaría 13: cierra ruta 2.
+    \item Vehículo 3 toma cliente 2 (carga 4), luego cliente 5 (carga 11): última ruta.
+\end{enumerate}
+
+Resultado: tres rutas $0 \to 1 \to 0$, $0 \to 3 \to 4 \to 0$, $0 \to 2 \to 5 \to 0$, con cargas $(8, 9, 11)$.
+
+\subsection{Parámetros y diseño experimental}
+
+Los hiperparámetros por escenario están versionados en \texttt{config/experiments.yaml} y siguen las recomendaciones del Apéndice A del plan brutal. Cada escenario se ejecuta con cinco semillas $\{2026, 2027, 2028, 2029, 2030\}$. La validación de factibilidad bloquea cualquier resultado infactible antes de persistirlo.
+
+\subsection{Reproducibilidad}
+
+Cada \emph{run} se serializa con metadatos completos: \texttt{git\_commit\_hash}, versión de Python y librerías, hash MD5 de la instancia y \emph{timestamp} UTC. El script \texttt{scripts/verificar\_reproducibilidad.py} re-ejecuta los runs en modo \emph{smoke} y compara contra los resultados anteriores. Dos ejecuciones del mismo \emph{seed} sobre la misma máquina producen resultados idénticos bit a bit.

@@ -1,0 +1,26 @@
+\section{Discusión}
+\label{sec:discusion}
+
+\subsection{Por qué el Caso 2 es el más duro}
+
+El Caso 2 ($N=100$, $Q=30$) combina los dos peores ingredientes para una metaheurística poblacional: \textbf{espacio combinatorio enorme} y \textbf{restricción dura agresiva}. Con sólo 30 unidades de capacidad por vehículo y demandas individuales en $[5, 15]$, casi cualquier permutación produce $\sim 30$--$40$ rutas, multiplicando el costo de evaluación del Split. Además, el cromosoma de longitud 100 implica $\sim 4 \times$ más swaps posibles que el Caso 1, por lo que la Tabú con \emph{sample\_size}=35 no agota ni una pequeña fracción del vecindario por iteración. La compensación: más generaciones (150), más individuos (80) y mayor probabilidad de aplicar Tabú (0.45). Aun así, el \emph{gap} entre runs es el mayor de los tres escenarios.
+
+\subsection{Por qué el Caso 3 favorece la consolidación}
+
+El Caso 3 ($N=75$, $Q=200$) es el escenario más fácil para el memético: la capacidad amplia permite agrupar muchos clientes en pocas rutas. Esto reduce drásticamente la cantidad de configuraciones distintas con costo competitivo —en la práctica, casi todas las soluciones razonables convergen a 4--5 rutas. La señal de \emph{fitness} es entonces más pronunciada y la Tabú alcanza el óptimo local con menos iteraciones. Era esperable que su desviación estándar inter-\emph{seed} fuera la menor de los tres, y en efecto así ocurre.
+
+\subsection{Aporte del componente Tabú vs un GA puro}
+
+Aunque este reporte no incluye un \emph{ablation study} formal contra una versión "GA puro" (sin Tabú), la métrica \texttt{aceptaciones\_no\_mejorantes\_tabu} en los \texttt{run\_seed*.json} permite estimar cuánta diversificación dirigida está aportando la Tabú. En todos los escenarios esta métrica es positiva en cada \emph{run}, lo que indica que la Tabú efectivamente acepta empeoramientos temporales para escapar de óptimos locales. La consecuencia visible es que el histórico de convergencia muestra mejoras en generaciones tardías (después de la 50, e incluso después de la 100), algo poco común en GA puros donde el progreso se estanca tras pocas generaciones.
+
+\subsection{Limitaciones reconocidas}
+
+\begin{itemize}
+    \item \textbf{Tamaño de muestra.} Cinco \emph{seeds} por escenario es el mínimo razonable para reportar media $\pm$ desviación estándar; idealmente $n \geq 30$ para inferencia estadística estricta.
+    \item \textbf{Sin BKS de literatura.} Las instancias se generan ad hoc; no se compara contra \emph{Best Known Solutions} de bancos como Solomon o Augerat. Eso impide reportar \emph{gap a óptimo}, pero permite garantizar que ningún equipo del curso parta con ventaja por elegir mejor instancia.
+    \item \textbf{Operadores de vecindad limitados.} Sólo se usa \emph{swap}; complementarlo con \emph{or-opt} (mover sub-secuencias entre rutas) o \emph{2-opt} intra-ruta abre la puerta a mejoras significativas, especialmente en el Caso 2.
+\end{itemize}
+
+\subsection{Conexión con la práctica industrial}
+
+En el ámbito bancario, la asignación de capital a \emph{retainer ATMs} o el ruteo de personal de mantenimiento de cajeros automáticos es un CVRP con restricciones extra (ventanas horarias, equipos especializados). La técnica memética aquí descrita es el esqueleto de soluciones reales en la industria; la diferencia está en la riqueza de la función objetivo (penalizaciones por incumplir SLA, costos asimétricos por vehículo, etc.) y en la integración con sistemas de decisión en tiempo real.

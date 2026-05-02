@@ -1,0 +1,18 @@
+\section{Introducción}
+\label{sec:introduccion}
+
+El \textbf{Problema de Enrutamiento de Vehículos con Capacidad} (\emph{Capacitated Vehicle Routing Problem}, CVRP) es uno de los problemas de optimización combinatoria más estudiados desde su formulación original por Dantzig y Ramser \cite{dantzig1959truck}. Su relevancia industrial es enorme: distribución logística, recolección de residuos, abastecimiento de cajeros automáticos, ruteo de paquetería de última milla. La dificultad teórica también lo es: el CVRP es \textbf{NP-duro} en sentido fuerte, por lo que los métodos exactos sólo escalan hasta unas pocas decenas de clientes con cómputo razonable.
+
+En la práctica, el estado del arte para instancias medianas y grandes son las \textbf{metaheurísticas}, en particular las que combinan exploración global y explotación local. Los \emph{Algoritmos Genéticos} (GA) \cite{holland1975adaptation} sobresalen para barrer el espacio de soluciones en regiones diversas mediante cruza, pero pierden eficiencia al pulir soluciones cercanas a un óptimo local. La \emph{Búsqueda Tabú} (TS) de Glover \cite{glover1986future} es exactamente lo opuesto: brilla afinando soluciones, pero depende del punto inicial. El \emph{Algoritmo Memético} \cite{moscato1989evolution} fusiona ambos paradigmas: el GA decide \emph{dónde} buscar y la búsqueda local decide \emph{cómo} explotar esa región.
+
+\subsection*{Aporte de este trabajo}
+
+Este reporte documenta la implementación \textbf{desde cero} (sin librerías de optimización VRP externas) de un Algoritmo Memético GA + Tabú aplicado a tres escenarios deterministas del CVRP, con multi-seed para validez estadística y reproducibilidad bit-a-bit. Se hace énfasis en:
+
+\begin{itemize}
+    \item Una implementación clara y modular en Python puro con pruebas unitarias.
+    \item La discusión de trade-offs entre presión selectiva, intensificación local y diversidad poblacional.
+    \item La presentación visual sobria de los resultados en un reporte LaTeX y en un sitio web estático Nuxt.
+\end{itemize}
+
+El código completo, con instrucciones de reproducción, está disponible en \url{https://github.com/jrebull/MIAAD_SmartOpti_memetic}.

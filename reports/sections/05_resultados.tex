@@ -1,0 +1,88 @@
+\section{Resultados}
+\label{sec:resultados}
+
+\subsection{Resumen comparativo}
+
+La tabla siguiente presenta los resultados agregados por escenario. Cada celda surge de cinco \emph{runs} con semillas distintas; se reporta el mejor costo histórico, la media, la desviación estándar, el número promedio de vehículos y el tiempo de cómputo.
+
+\input{tables/resumen_global}
+
+\subsection{Convergencia y soluciones por escenario}
+
+\paragraph{Caso 1 — Escala Media (\emph{N}=50, \emph{Q}=100).}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{convergencia_caso_1.png}
+        \caption{Convergencia (5 \emph{seeds}).}
+        \label{fig:conv1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{rutas_caso_1.png}
+        \caption{Mejor solución encontrada.}
+        \label{fig:rutas1}
+    \end{subfigure}
+    \caption{Caso 1. Histórico de convergencia y mapa de rutas del mejor \emph{run}.}
+    \label{fig:caso1}
+\end{figure}
+
+\paragraph{Caso 2 — Alta Densidad / Rutas Cortas (\emph{N}=100, \emph{Q}=30).}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{convergencia_caso_2.png}
+        \caption{Convergencia (5 \emph{seeds}).}
+        \label{fig:conv2}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{rutas_caso_2.png}
+        \caption{Mejor solución encontrada.}
+        \label{fig:rutas2}
+    \end{subfigure}
+    \caption{Caso 2. La capacidad pequeña fuerza más vehículos y rutas más cortas.}
+    \label{fig:caso2}
+\end{figure}
+
+\paragraph{Caso 3 — Consolidación (\emph{N}=75, \emph{Q}=200).}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{convergencia_caso_3.png}
+        \caption{Convergencia (5 \emph{seeds}).}
+        \label{fig:conv3}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{rutas_caso_3.png}
+        \caption{Mejor solución encontrada.}
+        \label{fig:rutas3}
+    \end{subfigure}
+    \caption{Caso 3. Capacidad alta favorece pocas rutas largas con buena utilización.}
+    \label{fig:caso3}
+\end{figure}
+
+\subsection{Distribución de costos entre escenarios}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{boxplot_costos.png}
+    \caption{Distribución de costos finales por escenario (n=5 \emph{seeds} cada uno).}
+    \label{fig:boxplot}
+\end{figure}
+
+\subsection{Detalle del mejor \emph{run} por escenario}
+
+\input{tables/rutas_caso_1}
+\input{tables/rutas_caso_2}
+\input{tables/rutas_caso_3}

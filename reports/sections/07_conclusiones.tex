@@ -1,0 +1,19 @@
+\section{Conclusiones}
+\label{sec:conclusiones}
+
+\begin{enumerate}
+    \item Se construyó \textbf{desde cero} un Algoritmo Memético GA + Búsqueda Tabú aplicable al CVRP, con suite de pruebas unitarias verde, validación blindada de factibilidad y reproducibilidad bit-a-bit verificada. El paquete \texttt{memetico\_cvrp} es modular y reutilizable.
+
+    \item En los tres escenarios evaluados —cada uno con cinco \emph{seeds}— la búsqueda converge en menos de 30~s para $N \le 50$ y en torno a 1--2~min para $N = 100$. La factibilidad se mantiene en el 100\% de los \emph{runs}, validada por el módulo \texttt{feasibility}.
+
+    \item La fusión GA + Tabú aporta valor real frente a un GA puro: la Tabú acepta empeoramientos temporales (métrica \texttt{aceptaciones\_no\_mejorantes\_tabu} positiva en todos los \emph{runs}), lo que produce mejoras tardías en el histórico de convergencia que un GA puro tendería a perderse.
+\end{enumerate}
+
+\subsection*{Trabajo futuro}
+
+\begin{itemize}
+    \item Incorporar operadores de vecindad complementarios: \emph{or-opt} y \emph{2-opt} intra-ruta.
+    \item Explorar \emph{Adaptive Large Neighborhood Search} (ALNS) como mecanismo de diversificación más rico.
+    \item Comparar contra instancias clásicas de la literatura (Solomon, Augerat) para reportar \emph{gap} a \emph{Best Known Solutions}.
+    \item Paralelización: ejecutar \emph{seeds} concurrentemente y experimentar con poblaciones distribuidas (\emph{island models}).
+\end{itemize}

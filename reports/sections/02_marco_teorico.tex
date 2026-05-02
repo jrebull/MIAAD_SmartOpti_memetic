@@ -1,0 +1,92 @@
+\section{Marco teórico}
+\label{sec:marco}
+
+\subsection{Formulación del CVRP}
+
+Sea $V = \{0, 1, \ldots, N\}$ el conjunto de nodos, donde $0$ representa el depósito y $\{1, \ldots, N\}$ los clientes. Cada cliente $i$ tiene una demanda $q_i > 0$. La flota es homogénea con $K$ vehículos idénticos, cada uno con capacidad $Q$. La distancia euclidiana entre los nodos $i$ y $j$ es:
+$$d_{ij} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}.$$
+
+Definimos las variables binarias $x_{ijk} = 1$ si el vehículo $k$ viaja directamente del nodo $i$ al nodo $j$, y $0$ en otro caso. La función objetivo a \textbf{minimizar} es:
+
+\begin{equation}
+\label{eq:cvrp}
+f(S) = \sum_{k=1}^{K} \sum_{i=0}^{N} \sum_{j=0}^{N} d_{ij}\, x_{ijk}.
+\end{equation}
+
+Sujeta a las tres restricciones duras del CVRP:
+
+\begin{enumerate}
+    \item \textbf{Cobertura única.} Cada cliente $j \in \{1, \ldots, N\}$ es visitado exactamente una vez por exactamente un vehículo:
+    $$\sum_{k=1}^{K} \sum_{i=0}^{N} x_{ijk} = 1 \quad \forall\, j \in \{1, \ldots, N\}.$$
+    \item \textbf{Balance en el depósito.} Todo vehículo que sale del depósito vuelve al depósito:
+    $$\sum_{j=1}^{N} x_{0jk} = \sum_{i=1}^{N} x_{i0k} \quad \forall\, k.$$
+    \item \textbf{Capacidad.} La carga total de la ruta de cada vehículo no excede $Q$:
+    $$\sum_{i=1}^{N} q_i \sum_{j=0}^{N} x_{ijk} \leq Q \quad \forall\, k.$$
+\end{enumerate}
+
+\subsection{Representación Giant Tour y decodificador Split}
+
+Codificar directamente las $K$ rutas como un cromosoma es engorroso porque obliga a operadores genéticos sensibles a la cardinalidad de la flota. Una alternativa elegante es la representación \textbf{Giant Tour}: un cromosoma es una permutación $(\pi_1, \pi_2, \ldots, \pi_N)$ de los $N$ clientes, sin separadores de ruta. Un decodificador determinista —el algoritmo \emph{Split} capacitado— recorre la permutación de izquierda a derecha y abre una nueva ruta cada vez que la siguiente demanda desbordaría la capacidad del vehículo actual. Así, todo cromosoma representa unívocamente una solución factible (mientras ningún cliente individual exceda $Q$).
+
+\subsection{Order Crossover (OX)}
+
+Dado que el cromosoma es una permutación sin duplicados ni faltantes, los operadores clásicos de cruza (un punto, uniforme) no aplican. El \textbf{Order Crossover} (Davis, 1985) es el estándar para permutaciones:
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\caption{Order Crossover (OX)}
+\KwIn{Padres $P_1, P_2$ permutaciones de longitud $N$}
+\KwOut{Hijo $H$, permutación válida}
+Elegir dos puntos de corte $i < j$ uniformemente en $[0, N-1]$\;
+$H[i..j] \leftarrow P_1[i..j]$\;
+$pos \leftarrow (j + 1) \bmod N$\;
+\For{cada gen $g$ recorriendo $P_2$ desde $j+1$ con wrap-around}{
+    \If{$g \notin H$}{
+        $H[pos] \leftarrow g$\;
+        $pos \leftarrow (pos + 1) \bmod N$\;
+    }
+}
+\Return $H$\;
+\end{algorithm}
+
+\subsection{Búsqueda Tabú con tenencia y aspiración}
+
+La Búsqueda Tabú \cite{glover1986future} es una metaheurística de búsqueda local que escapa de óptimos locales mediante una \emph{memoria de corto plazo} de movimientos recientes. Para CVRP usamos el operador de vecindad \emph{swap} (intercambio de dos posiciones del cromosoma). En cada iteración:
+
+\begin{enumerate}
+    \item Se muestrean $s$ vecinos por swap.
+    \item Para cada uno se evalúa el costo y se chequea si el movimiento $(\min(c_a, c_b), \max(c_a, c_b))$ está en la lista tabú.
+    \item Un movimiento tabú puede ser aceptado si cumple el \emph{criterio de aspiración}: mejora el mejor global histórico.
+    \item Se acepta el mejor vecino válido —incluso si empeora— para forzar la salida de óptimos locales.
+    \item El movimiento se prohíbe durante $T$ iteraciones (\emph{tenencia}).
+\end{enumerate}
+
+\subsection{Algoritmo Memético}
+
+La integración GA + TS se hace por \textbf{aprendizaje individual} (educación de hijos). Tras cada cruza OX, con probabilidad $p_{tabu}$ el hijo se somete a una corrida corta de Búsqueda Tabú antes de incorporarse a la siguiente población.
+
+\begin{algorithm}[H]
+\SetAlgoLined
+\caption{Algoritmo Memético GA + Tabú para CVRP}
+\KwIn{Población inicial aleatoria de tamaño $\mu$, generaciones $G$, prob. tabú $p_t$}
+\KwOut{Mejor cromosoma encontrado}
+Inicializar población $P_0$ aleatoria\;
+Evaluar $\mathrm{fit}(P_0)$ vía Split\;
+$best \leftarrow \arg\min_{c \in P_0} \mathrm{fit}(c)$\;
+\For{$g = 1, \ldots, G$}{
+    $P_{g} \leftarrow \{best\}$ \tcp*[r]{Elitismo}
+    \While{$|P_g| < \mu$}{
+        $p_1 \leftarrow$ TorneoSel($P_{g-1}, k$)\;
+        $p_2 \leftarrow$ TorneoSel($P_{g-1}, k$)\;
+        $h \leftarrow$ OX$(p_1, p_2)$\;
+        \If{$\mathrm{rand}() < p_t$}{
+            $h \leftarrow$ Tabu$(h, \text{iter}, \text{ten}, s)$\;
+        }
+        $P_g \leftarrow P_g \cup \{h\}$\;
+    }
+    $best \leftarrow \arg\min_{c \in P_g} \mathrm{fit}(c)$\;
+}
+\Return $best$\;
+\end{algorithm}
+
+La \emph{mutación clásica} se omite (o se reduce a probabilidad $\approx 0$) porque la propia Tabú actúa como una "super-mutación inteligente" \cite{moscato1989evolution}: la diversificación dirigida por memoria sustituye con ventaja a la mutación aleatoria.

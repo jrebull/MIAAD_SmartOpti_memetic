@@ -1,0 +1,46 @@
+\section{Diseño experimental}
+\label{sec:experimentos}
+
+\subsection{Escenarios}
+
+Se evalúa el algoritmo memético sobre tres escenarios CVRP deterministas. Cada instancia se genera con una semilla específica y queda persistida en \texttt{data/raw/} junto con su archivo \texttt{.meta.json} (que registra parámetros, hash MD5 y \emph{timestamp}).
+
+\begin{table}[H]
+\centering
+\caption{Escenarios evaluados. Las semillas son las pactadas en el plan; cinco \emph{runs} por escenario.}
+\begin{tabular}{lrrrl}
+\toprule
+Escenario & $N$ clientes & $Q$ & Semilla instancia & \emph{Seeds} runs \\
+\midrule
+Caso 1 — Escala Media           & 50  & 100 & 20\,260\,201 & 2026, 2027, 2028, 2029, 2030 \\
+Caso 2 — Alta Densidad          & 100 & 30  & 20\,260\,202 & 2026, 2027, 2028, 2029, 2030 \\
+Caso 3 — Consolidación          & 75  & 200 & 20\,260\,203 & 2026, 2027, 2028, 2029, 2030 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Justificación del diseño multi-seed}
+
+Reportar un único \emph{run} con suerte es engañoso: las metaheurísticas estocásticas pueden caer en óptimos locales muy distintos según el camino aleatorio. Reportar $n=5$ \emph{runs} permite distinguir entre el desempeño promedio y la dispersión, condición necesaria para hacer afirmaciones cuantitativas defendibles. En la sección de resultados se reportan media, mediana, mínimo, máximo y desviación estándar de cada métrica.
+
+\subsection{Hiperparámetros por escenario}
+
+\begin{table}[H]
+\centering
+\caption{Hiperparámetros por escenario.}
+\begin{tabular}{lrrrrrrr}
+\toprule
+Escenario & gen & pob & $k$ & $p_{\mathrm{tabu}}$ & iter\,Tabú & ten. & sample \\
+\midrule
+Caso 1 & 100 & 60 & 3 & 0.35 & 30 & 7 & 25 \\
+Caso 2 & 150 & 80 & 3 & 0.45 & 35 & 9 & 35 \\
+Caso 3 & 100 & 60 & 3 & 0.35 & 25 & 7 & 25 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Por qué Caso 2 lleva más recursos.} El Caso 2 tiene $N = 100$ clientes (combinatorialmente $\sim 4 \times$ mayor que el Caso 1) y $Q = 30$ —es decir, requiere muchísimas rutas pequeñas, lo que multiplica la cantidad de configuraciones plausibles. Para no quedarse en óptimos locales tempranos, el algoritmo recibe mayor población, más generaciones, más probabilidad de aplicar Tabú y tenencia más larga.
+
+\subsection{Entorno}
+
+Todos los experimentos se ejecutan localmente (no se usa cómputo distribuido). El entorno está documentado en \texttt{requirements.txt}: NumPy 2.4, SciPy 1.17, pytest 9.0, Python 3.11+. La máquina de referencia es macOS 25.5 con Python 3.14.
