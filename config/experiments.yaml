@@ -1,0 +1,51 @@
+# Configuración versionada de los experimentos CVRP.
+# Cada entrada en `experimentos` define un escenario con N seeds.
+# Las semillas son fijas para reproducibilidad bit-a-bit.
+#
+# Ver docs/REPRODUCIBILITY.md para verificar resultados.
+
+experimentos:
+  - id: caso_1
+    nombre: "Escala Media"
+    instancia: "data/raw/caso_1_50_clientes_q100.csv"
+    capacidad: 100
+    seeds: [2026, 2027, 2028, 2029, 2030]
+    parametros:
+      generaciones: 100
+      tamano_poblacion: 60
+      torneo_k: 3
+      prob_tabu: 0.35
+      iter_tabu: 30
+      tenencia: 7
+      sample_size: 25
+      mutacion_prob: 0.0
+
+  - id: caso_2
+    nombre: "Alta Densidad / Rutas Cortas"
+    instancia: "data/raw/caso_2_100_clientes_q30.csv"
+    capacidad: 30
+    seeds: [2026, 2027, 2028, 2029, 2030]
+    parametros:
+      generaciones: 150
+      tamano_poblacion: 80
+      torneo_k: 3
+      prob_tabu: 0.45
+      iter_tabu: 35
+      tenencia: 9
+      sample_size: 35
+      mutacion_prob: 0.0
+
+  - id: caso_3
+    nombre: "Rutas de Consolidación"
+    instancia: "data/raw/caso_3_75_clientes_q200.csv"
+    capacidad: 200
+    seeds: [2026, 2027, 2028, 2029, 2030]
+    parametros:
+      generaciones: 100
+      tamano_poblacion: 60
+      torneo_k: 3
+      prob_tabu: 0.35
+      iter_tabu: 25
+      tenencia: 7
+      sample_size: 25
+      mutacion_prob: 0.0
