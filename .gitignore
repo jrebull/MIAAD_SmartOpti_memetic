@@ -1,0 +1,67 @@
+# --- Claude / IA / prompts privados ---
+CLAUDE.md
+Prompts/
+memoryua/
+*.memory*
+.memory/
+
+# --- Variables de entorno ---
+.env
+.env.local
+.env.production
+.env.*.local
+
+# --- Python ---
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# --- Resultados intermedios pesados (mantener JSON pequeño en git) ---
+data/processed/*.csv
+data/processed/*.parquet
+data/results/**/run_seed*.json
+data/results/**/convergencia_seed*.csv
+
+# --- LaTeX (no generamos PDF local) ---
+reports/*.aux
+reports/*.log
+reports/*.out
+reports/*.toc
+reports/*.synctex.gz
+reports/*.bbl
+reports/*.blg
+reports/*.fls
+reports/*.fdb_latexmk
+reports/*.pdf
+reports/sections/*.aux
+
+# --- Node / Nuxt ---
+node_modules/
+.nuxt/
+.output/
+.nitro/
+.cache/
+dist/
+
+# --- macOS / editores ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.tmp
+*.bak
+
+# --- Mantener .gitkeep ---
+!.gitkeep

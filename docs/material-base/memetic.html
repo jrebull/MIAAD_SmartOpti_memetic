@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad Práctica: Metaheurísticas Híbridas (Algoritmo Memético para VRP)</title>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #FFFFFF;       
+            --text-color: #1A2130;     
+            --highlight-color: #5A72A0; 
+            --extra-color: #83B4FF;    
+            --white: #FFFFFF;
+        }
+
+        body { font-family: 'Georgia', 'Times New Roman', Times, serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.8; margin: 0; padding: 0; font-size: 19px; }
+        .article-column { max-width: 760px; margin: 0 auto; padding: 60px 20px; }
+        h1, h2, h3 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-color); font-weight: 700; margin-top: 2em; margin-bottom: 0.5em; }
+        h1 { font-size: 2.8em; line-height: 1.1; margin-top: 0; text-align: center; letter-spacing: -0.02em; }
+        .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; font-size: 1.3em; color: var(--highlight-color); margin-bottom: 60px; font-weight: 300; }
+        h2 { font-size: 1.8em; border-bottom: 2px solid var(--extra-color); padding-bottom: 10px; display: inline-block; }
+        h3 { font-size: 1.3em; color: var(--highlight-color); margin-top: 1.5em; }
+        p { margin-bottom: 1.5em; }
+        strong { color: var(--highlight-color); font-weight: 700; }
+        .highlight-box { background-color: rgba(131, 180, 255, 0.08); border-radius: 8px; padding: 30px; margin: 40px 0; border: 1px solid var(--extra-color); }
+        .highlight-box h3 { margin-top: 0; color: var(--text-color); }
+        ul, ol { padding-left: 20px; margin-bottom: 2em; }
+        li { margin-bottom: 10px; position: relative; }
+        li::marker { color: var(--extra-color); font-weight: bold; }
+        .footer { text-align: center; margin-top: 80px; padding-top: 40px; border-top: 1px solid rgba(0,0,0,0.1); font-size: 0.8em; color: var(--highlight-color); font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div class="article-column">
+        <h1>Reto Híbrido: Diseño de un Algoritmo Memético</h1>
+        <p class="subtitle">Fusión de Paradigmas: Algoritmo Genético + Búsqueda Tabú para el VRP</p>
+
+        <h2>El Concepto: ¿Por qué Hibridar?</h2>
+        <p>Hasta ahora, hemos estudiado las metaheurísticas como entidades aisladas. Los Algoritmos Genéticos (GA) son extraordinarios para la <strong>exploración global</strong> (saltar a zonas completamente nuevas del espacio de búsqueda cruzando el ADN de dos buenas soluciones). Sin embargo, son notoriamente ineficientes para la <strong>explotación local</strong> (hacer pequeños ajustes finos para llegar a la cima exacta del óptimo local).</p>
+        
+        <p>Por otro lado, la Búsqueda Tabú (TS) es la reina de la explotación local, pero depende fuertemente de dónde inicie su búsqueda. Si fusionamos ambas, obtenemos un <strong>Algoritmo Memético</strong>: un sistema donde la evolución dicta las regiones globales a explorar, y la memoria Tabú se encarga de exprimir cada gota de optimización en esas regiones.</p>
+
+        <div class="highlight-box">
+            <h3>Arquitectura de la Fusión (El Flujo de Vida)</h3>
+            <p>La integración <strong>no</strong> significa mezclar el código caóticamente. Existe una jerarquía clara:</p>
+            <ol>
+                <li>El Algoritmo Genético actúa como el <em>Director global</em>. Mantiene una población de soluciones (cromosomas) y realiza la Selección y la Cruza.</li>
+                <li>Cada vez que nace un "Hijo" (una nueva solución VRP), antes de ingresarlo a la nueva población, <strong>se le entrega temporalmente a la Búsqueda Tabú</strong>.</li>
+                <li>La Búsqueda Tabú toma a ese Hijo como su <em>solución inicial</em> y corre por un número limitado de iteraciones (ej. 50 iteraciones de Swaps con Lista Tabú) para "educarlo" y optimizarlo lo más posible.</li>
+                <li>El Hijo optimizado por la Tabú es devuelto al Algoritmo Genético para formar parte de la siguiente generación.</li>
+            </ol>
+        </div>
+
+        <h2>Instrucciones de la Actividad Práctica</h2>
+        <p><strong>Objetivo:</strong> Diseñar y programar un Algoritmo Memético (GA + TS) para resolver instancias clásicas del Problema de Enrutamiento de Vehículos (VRP).</p>
+
+        <h3>1. Representación del Cromosoma (VRP)</h3>
+        <p>El primer reto es cómo codificar una flota de vehículos en un arreglo genético. Se sugiere utilizar la técnica del <strong>Giant Tour (Tour Gigante)</strong>. El cromosoma es una simple permutación de todos los clientes (ej. <code>[3, 1, 4, 5, 2]</code>). Un decodificador determinista (como el algoritmo <em>Split</em>) leerá esta permutación de izquierda a derecha y asignará los clientes a los vehículos respetando la capacidad máxima de carga. Si el vehículo se llena en el cliente 4, el cliente 5 pasa al siguiente vehículo.</p>
+
+        <h3>2. Operador de Cruza Global</h3>
+        <p>Dado que el cromosoma es una permutación de clientes (no podemos tener clientes duplicados ni faltantes), no pueden usar cruza de un punto clásica. Deberán programar un operador especial para permutaciones, siendo el <strong>Order Crossover (OX)</strong> el estándar recomendado por la literatura.</p>
+
+        <h3>3. El Motor Tabú Local</h3>
+        <p>Por cada hijo generado por la cruza OX, deberán someterlo a una Búsqueda Tabú con las siguientes características:</p>
+        <ul>
+            <li><strong>Operador de Vecindad:</strong> <em>Swap</em> (intercambio de dos clientes en el cromosoma gigante).</li>
+            <li><strong>Memoria:</strong> Una Lista Tabú estática de tamaño $T$ (ej. $T=5$).</li>
+            <li><strong>Presupuesto:</strong> La Búsqueda Tabú no debe correr hasta el infinito. Se le debe dar un presupuesto corto de "Intensificación", por ejemplo, 20 o 30 iteraciones máximas por hijo, evaluando el impacto mediante el $\Delta f$.</li>
+        </ul>
+
+        <h2>4. El Problema de Prueba: CVRP y la Instancia Autónoma</h2>
+        <p>Para estandarizar la evaluación de todos, no utilizaremos bancos de pruebas externos. Resolveremos una variante pura del <strong>Problema de Enrutamiento de Vehículos con Capacidad (CVRP)</strong>, cuya instancia generaremos nosotros mismos.</p>
+
+        <h3>Formulación del Problema y Función Objetivo</h3>
+        <p>El problema consiste en un Depósito central (nodo 0) y un conjunto de $N$ clientes. Tenemos a nuestra disposición una flota de vehículos homogéneos, cada uno con una capacidad máxima de carga $Q$.</p>
+        
+        <p>El objetivo del Algoritmo Memético es encontrar un conjunto de rutas válidas que minimicen la <strong>distancia Euclidiana total recorrida</strong>. La función objetivo $f(S)$ se define matemáticamente como:</p>
+
+        <div class="equation-box">
+            $$ \text{Minimizar } f(S) = \sum_{k=1}^{K} \sum_{i=0}^{N} \sum_{j=0}^{N} d_{ij} \cdot x_{ijk} $$
+        </div>
+
+        <p><strong>Donde:</strong></p>
+        <ul>
+            <li>$d_{ij}$: Es la distancia Euclidiana directa entre el nodo $i$ y el nodo $j$. Se calcula con la fórmula: $\sqrt{(X_i - X_j)^2 + (Y_i - Y_j)^2}$.</li>
+            <li>$x_{ijk}$: Es una variable binaria que vale $1$ si el vehículo $k$ viaja directamente del nodo $i$ al nodo $j$, y $0$ en caso contrario.</li>
+        </ul>
+
+        <p><strong>Restricciones Duras (Factibilidad):</strong> Un cromosoma o solución solo es válido si cumple tres reglas inquebrantables:</p>
+        <ol>
+            <li>Todos los vehículos deben iniciar y terminar su ruta en el Depósito (Nodo 0).</li>
+            <li>Cada cliente debe ser visitado exactamente una vez por un solo vehículo.</li>
+            <li>La suma de las demandas de los clientes en una ruta <strong>no puede exceder</strong> la capacidad máxima del vehículo ($Q$).</li>
+        </ol>
+
+        <div class="highlight-box">
+            <h3>Generación de la Instancia (Script en Python)</h3>
+            <p>A continuación se presenta el código oficial para generar el escenario de prueba. El script utiliza una semilla fija (<code>seed</code>) para asegurar que la generación sea determinista. Todos los equipos obtendrán exactamente el mismo mapa espacial compuesto por 1 Depósito y 25 clientes, con una capacidad de vehículo $Q = 50$.</p>
+            
+            <p>Copien, peguen y ejecuten el siguiente código en su entorno para generar el archivo <code>instancia_cvrp.csv</code> que servirá de entrada para sus algoritmos:</p>
+
+<pre style="background-color: #1A2130; color: #E7ECF4; padding: 20px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; overflow-x: auto; margin-top: 15px;">
+<code>import csv
+import random
+import math
+
+def generar_instancia_cvrp(filename="instancia_cvrp.csv"):
+    # Semilla fija: Garantiza que todos generen los mismos datos
+    random.seed(2026) 
+    
+    num_clientes = 25
+    capacidad_vehiculo = 50
+    
+    datos = []
+    # El Depósito siempre es el ID 0, ubicado en el centro (50, 50) con demanda 0
+    datos.append({'ID': 0, 'X': 50, 'Y': 50, 'Demanda': 0})
+    
+    # Generar 25 clientes de forma seudoaleatoria
+    for i in range(1, num_clientes + 1):
+        x = random.randint(10, 90)
+        y = random.randint(10, 90)
+        # Demanda aleatoria entre 5 y 15 unidades
+        demanda = random.randint(5, 15) 
+        datos.append({'ID': i, 'X': x, 'Y': y, 'Demanda': demanda})
+        
+    # Escribir a CSV
+    with open(filename, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=['ID', 'X', 'Y', 'Demanda'])
+        writer.writeheader()
+        writer.writerows(datos)
+        
+    print(f"Instancia generada con éxito: {filename}")
+    print(f"Total de Nodos: {num_clientes + 1} (1 Depósito + {num_clientes} Clientes)")
+    print(f"Capacidad del Vehículo (Q): {capacidad_vehiculo}")
+
+if __name__ == "__main__":
+    generar_instancia_cvrp()
+</code></pre>
+        </div>
+
+        <div class="footer">
+            Reto avanzado para el módulo de Metaheurísticas Híbridas y Algoritmos Evolutivos.
+        </div>
+    </div>
+
+</body>
+</html>

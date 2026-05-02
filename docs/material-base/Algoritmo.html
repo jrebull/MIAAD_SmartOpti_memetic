@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código desde Cero: Algoritmo Memético para el CVRP</title>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #FFFFFF;       
+            --text-color: #1A2130;     
+            --highlight-color: #5A72A0; 
+            --extra-color: #83B4FF;    
+            --white: #FFFFFF;
+        }
+
+        body { font-family: 'Georgia', 'Times New Roman', Times, serif; background-color: var(--bg-color); color: var(--text-color); line-height: 1.8; margin: 0; padding: 0; font-size: 19px; }
+        .article-column { max-width: 800px; margin: 0 auto; padding: 60px 20px; }
+        h1, h2, h3 { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-color); font-weight: 700; margin-top: 2em; margin-bottom: 0.5em; }
+        h1 { font-size: 2.8em; line-height: 1.1; margin-top: 0; text-align: center; letter-spacing: -0.02em; }
+        .subtitle { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; font-size: 1.3em; color: var(--highlight-color); margin-bottom: 60px; font-weight: 300; }
+        h2 { font-size: 1.8em; border-bottom: 2px solid var(--extra-color); padding-bottom: 10px; display: inline-block; }
+        h3 { font-size: 1.3em; color: var(--highlight-color); margin-top: 1.5em; }
+        p { margin-bottom: 1.5em; }
+        strong { color: var(--highlight-color); font-weight: 700; }
+        .highlight-box { background-color: rgba(131, 180, 255, 0.08); border-radius: 8px; padding: 30px; margin: 40px 0; border: 1px solid var(--extra-color); }
+        .highlight-box h3 { margin-top: 0; color: var(--text-color); }
+        
+        pre { background-color: #1A2130; color: #E7ECF4; padding: 20px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 0.85em; overflow-x: auto; border-left: 5px solid var(--extra-color); line-height: 1.4;}
+        code.inline { font-family: 'Courier New', Courier, monospace; background-color: #F0F4F8; padding: 2px 6px; border-radius: 4px; color: var(--highlight-color); font-weight: bold; }
+        
+        .footer { text-align: center; margin-top: 80px; padding-top: 40px; border-top: 1px solid rgba(0,0,0,0.1); font-size: 0.8em; color: var(--highlight-color); font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div class="article-column">
+        <h1>Construyendo un Algoritmo Memético desde Cero</h1>
+        <p class="subtitle">Programación paso a paso en Python Puro: GA + Búsqueda Tabú para el CVRP</p>
+
+        <p>Ha llegado el momento de llevar las matemáticas a la máquina. En este tutorial, programaremos un Algoritmo Memético completo sin depender de librerías de optimización externas. Construiremos cada engrane de esta metaheurística para resolver nuestra instancia CVRP de 25 clientes.</p>
+        
+        <p><em>Nota para los alumnos: Abran su editor de Python (Jupyter, VS Code, PyCharm) y creen un archivo llamado <code>memetico_cvrp.py</code>. Vayan copiando los bloques de código uno debajo del otro.</em></p>
+
+        <h2>1. Preparando el Terreno: Lectura y Estructuras</h2>
+        <p>Lo primero es leer el archivo <code>instancia_cvrp.csv</code> que generamos previamente y precalcular la matriz de distancias. Calcular las distancias de antemano es vital para que nuestro algoritmo no pierda tiempo aplicando el Teorema de Pitágoras millones de veces durante la ejecución.</p>
+
+<pre><code>import csv
+import math
+import random
+
+# --- 1. LECTURA DE DATOS Y MATRIZ DE DISTANCIAS ---
+def cargar_instancia(filename="instancia_cvrp.csv"):
+    nodos = {}
+    with open(filename, mode='r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            nodos[int(row['ID'])] = {
+                'x': float(row['X']),
+                'y': float(row['Y']),
+                'demanda': int(row['Demanda'])
+            }
+    return nodos
+
+def calcular_matriz_distancias(nodos):
+    n = len(nodos)
+    dist = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(n):
+            if i != j:
+                dx = nodos[i]['x'] - nodos[j]['x']
+                dy = nodos[i]['y'] - nodos[j]['y']
+                dist[i][j] = math.hypot(dx, dy)
+    return dist
+</code></pre>
+
+        <h2>2. El Decodificador: Algoritmo "Split"</h2>
+        <p>Utilizaremos la representación del <strong>Tour Gigante</strong>. El cromosoma será simplemente una permutación de los clientes (ej. <code>[5, 12, 1, 8...]</code>). Necesitamos una función que recorra esta lista y "corte" la ruta para enviar un camión de regreso al depósito cada vez que se llene su capacidad ($Q=50$). Esta función evaluará el costo real del cromosoma.</p>
+
+<pre><code># --- 2. DECODIFICACIÓN Y EVALUACIÓN (SPLIT) ---
+def evaluar_cromosoma(cromosoma, dist, nodos, capacidad_max=50):
+    costo_total = 0.0
+    ruta_actual = [0] # Todas las rutas inician en el depósito (0)
+    carga_actual = 0
+    rutas_detalladas = []
+
+    for cliente in cromosoma:
+        demanda_cliente = nodos[cliente]['demanda']
+        
+        # Si agregar al cliente supera la capacidad, cerramos la ruta
+        if carga_actual + demanda_cliente > capacidad_max:
+            ruta_actual.append(0) # Regresa al depósito
+            # Sumar el costo de esta ruta cerrada
+            for i in range(len(ruta_actual) - 1):
+                costo_total += dist[ruta_actual[i]][ruta_actual[i+1]]
+            rutas_detalladas.append(ruta_actual)
+            
+            # El camión nuevo sale del depósito directo al cliente
+            ruta_actual = [0, cliente]
+            carga_actual = demanda_cliente
+        else:
+            # Hay espacio, se sube al mismo camión
+            ruta_actual.append(cliente)
+            carga_actual += demanda_cliente
+
+    # Cerrar la última ruta que quedó pendiente
+    if len(ruta_actual) > 1:
+        ruta_actual.append(0)
+        for i in range(len(ruta_actual) - 1):
+            costo_total += dist[ruta_actual[i]][ruta_actual[i+1]]
+        rutas_detalladas.append(ruta_actual)
+
+    return costo_total, rutas_detalladas
+</code></pre>
+
+        <h2>3. Los Operadores Genéticos (El Director Global)</h2>
+        <p>Programaremos dos piezas clave del Algoritmo Genético: la Selección por Torneo (para elegir buenos padres sin perder diversidad) y el <strong>Order Crossover (OX)</strong>, que es indispensable para cruzar permutaciones sin duplicar ni perder clientes.</p>
+
+<pre><code># --- 3. OPERADORES GENÉTICOS ---
+def seleccion_torneo(poblacion, fitness, k=3):
+    # Selecciona k individuos al azar y retorna el mejor
+    seleccionados = random.sample(range(len(poblacion)), k)
+    mejor_idx = seleccionados[0]
+    for idx in seleccionados[1:]:
+        if fitness[idx] < fitness[mejor_idx]: # Buscamos minimizar costo
+            mejor_idx = idx
+    return poblacion[mejor_idx]
+
+def cruza_ox(padre1, padre2):
+    n = len(padre1)
+    # Elegir dos puntos de corte aleatorios
+    pto1, pto2 = sorted(random.sample(range(n), 2))
+    
+    hijo = [None] * n
+    # Copiar la subcadena del padre 1
+    hijo[pto1:pto2+1] = padre1[pto1:pto2+1]
+    
+    # Rellenar los huecos con el padre 2 respetando el orden
+    pos_hijo = (pto2 + 1) % n
+    for gen in padre2:
+        if gen not in hijo:
+            hijo[pos_hijo] = gen
+            pos_hijo = (pos_hijo + 1) % n
+            
+    return hijo
+</code></pre>
+
+        <div class="highlight-box">
+            <h3>Pausa Arquitectónica: ¿Dónde está la Mutación Genética?</h3>
+            <p>En un Algoritmo Memético, la clásica mutación aleatoria del GA a menudo se desactiva o se reduce drásticamente. ¿Por qué? Porque la Búsqueda Tabú actuará como una "super-mutación inteligente". El GA ensambla genes (explora), y la Tabú se encarga de pulirlos (explota).</p>
+        </div>
+
+        <h2>4. El Motor de Búsqueda Tabú (La Explotación Local)</h2>
+        <p>Aquí reside la magia híbrida. Escribiremos un motor Tabú simplificado pero poderoso. Recibirá a un "Hijo" recién cruzado y le aplicará iteraciones de mejoras usando el operador <em>Swap</em> (intercambio de 2 clientes). Utilizará un "muestreo inteligente" del vecindario para no ralentizar el programa, y aplicará su Lista Tabú y Criterio de Aspiración.</p>
+
+<pre><code># --- 4. BÚSQUEDA TABÚ (SUPER-EDUCADOR LOCAL) ---
+def optimizacion_tabu(cromosoma_inicial, dist, nodos, iteraciones=25, tenencia=5):
+    mejor_global = cromosoma_inicial.copy()
+    costo_mejor_global, _ = evaluar_cromosoma(mejor_global, dist, nodos)
+    
+    actual = cromosoma_inicial.copy()
+    lista_tabu = {} # Diccionario: (clienteA, clienteB) -> iteración de liberación
+    
+    for it in range(iteraciones):
+        mejor_vecino = None
+        mejor_costo_vecino = float('inf')
+        mejor_movimiento = None
+        
+        n_genes = len(actual)
+        
+        # Muestreo de Candidatos: En lugar de N^2, probamos 15 swaps aleatorios
+        for _ in range(15):
+            i, j = random.sample(range(n_genes), 2)
+            vecino = actual.copy()
+            vecino[i], vecino[j] = vecino[j], vecino[i] # Ejecutar Swap
+            
+            costo_v, _ = evaluar_cromosoma(vecino, dist, nodos)
+            
+            # Normalizar el par para buscarlo en la memoria
+            movimiento = (min(actual[i], actual[j]), max(actual[i], actual[j]))
+            es_tabu = lista_tabu.get(movimiento, 0) > it
+            
+            # Criterio de Aspiración o movimiento libre
+            if not es_tabu or costo_v < costo_mejor_global:
+                if costo_v < mejor_costo_vecino:
+                    mejor_costo_vecino = costo_v
+                    mejor_vecino = vecino
+                    mejor_movimiento = movimiento
+                    
+        # Si encontramos un vecino válido, nos movemos (incluso si es peor que 'actual')
+        if mejor_vecino:
+            actual = mejor_vecino
+            # Castigamos el movimiento inverso ingresándolo a la Lista Tabú
+            lista_tabu[mejor_movimiento] = it + tenencia
+            
+            # ¿Superamos el récord de la Tabú?
+            if mejor_costo_vecino < costo_mejor_global:
+                mejor_global = mejor_vecino.copy()
+                costo_mejor_global = mejor_costo_vecino
+                
+    return mejor_global
+</code></pre>
+
+        <h2>5. El Bucle Memético (La Fusión)</h2>
+        <p>Es la hora de orquestar todo. El Bucle Principal inicializará la población, y por cada iteración, cruzará padres, someterá a los hijos al "Gimnasio Tabú", y seleccionará a los sobrevivientes para la siguiente generación.</p>
+
+<pre><code># --- 5. ALGORITMO MEMÉTICO PRINCIPAL ---
+def algoritmo_memetico(nodos, dist, generaciones=50, tamaño_pob=30):
+    clientes = list(range(1, len(nodos))) # Del 1 al 25 (excluimos depósito 0)
+    
+    # Inicialización de población aleatoria
+    poblacion = [random.sample(clientes, len(clientes)) for _ in range(tamaño_pob)]
+    fitness = [evaluar_cromosoma(ind, dist, nodos)[0] for ind in poblacion]
+    
+    mejor_historico = None
+    costo_historico = float('inf')
+    
+    print("Iniciando Evolución Memética...")
+    for gen in range(generaciones):
+        nueva_poblacion = []
+        
+        # Elitismo: Guardar al mejor de la generación anterior directamente
+        mejor_idx = fitness.index(min(fitness))
+        nueva_poblacion.append(poblacion[mejor_idx])
+        
+        # Generar el resto de la población
+        while len(nueva_poblacion) < tamaño_pob:
+            # Selección
+            padre1 = seleccion_torneo(poblacion, fitness)
+            padre2 = seleccion_torneo(poblacion, fitness)
+            
+            # Cruza
+            hijo = cruza_ox(padre1, padre2)
+            
+            # 🚀 AQUÍ OCURRE LA MAGIA: El hijo recibe "educación intensiva" Tabú
+            # Solo aplicamos Tabú a una fracción de los hijos para ahorrar tiempo
+            if random.random() < 0.3: 
+                hijo = optimizacion_tabu(hijo, dist, nodos, iteraciones=20, tenencia=5)
+                
+            nueva_poblacion.append(hijo)
+            
+        poblacion = nueva_poblacion
+        fitness = [evaluar_cromosoma(ind, dist, nodos)[0] for ind in poblacion]
+        
+        # Registrar el mejor global
+        mejor_gen = min(fitness)
+        if mejor_gen < costo_historico:
+            costo_historico = mejor_gen
+            mejor_historico = poblacion[fitness.index(mejor_gen)]
+            
+        if gen % 10 == 0:
+            print(f"Generación {gen} | Mejor Costo Actual: {costo_historico:.2f}")
+            
+    return mejor_historico, costo_historico
+</code></pre>
+
+        <h2>6. El Tomador de Decisiones (Ejecución Final)</h2>
+        <p>Por último, añadimos el bloque <code>__main__</code> que dispara la lectura, el cálculo y formatea el reporte gerencial final para el tomador de decisiones logísticas.</p>
+
+<pre><code># --- 6. BLOQUE DE EJECUCIÓN PRINCIPAL ---
+if __name__ == "__main__":
+    # 1. Cargar datos
+    nodos = cargar_instancia("instancia_cvrp.csv")
+    dist = calcular_matriz_distancias(nodos)
+    
+    # 2. Ejecutar Algoritmo
+    random.seed(42) # Semilla de control para la metaheurística
+    mejor_cromosoma, costo_final = algoritmo_memetico(nodos, dist, generaciones=50, tamaño_pob=40)
+    
+    # 3. Decodificar el resultado final para imprimir
+    _, rutas_finales = evaluar_cromosoma(mejor_cromosoma, dist, nodos)
+    
+    print("\n" + "="*50)
+    print("🏆 OPTIMIZACIÓN FINALIZADA 🏆")
+    print("="*50)
+    print(f"Costo Total Minimizado (Distancia): {costo_final:.2f} unidades")
+    print(f"Flota Vehicular Requerida: {len(rutas_finales)} camiones\n")
+    
+    for i, ruta in enumerate(rutas_finales, 1):
+        # Calcular la carga de la ruta para mostrar que es factible
+        carga = sum(nodos[cliente]['demanda'] for cliente in ruta if cliente != 0)
+        # Formatear la impresión de la ruta
+        camino = " -> ".join(map(str, ruta))
+        print(f"Camión {i} [Carga: {carga}/50]: {camino}")
+</code></pre>
+
+        <div class="highlight-box" style="border-left: 4px solid #39d98a; background-color: rgba(57, 217, 138, 0.08);">
+            <h3 style="color: #2b9e66;">Mensaje de Cierre</h3>
+            <p><strong>Ingeniería de Software para IA:</strong> Con menos de 150 líneas de código, acaban de construir un motor logístico que fusiona el paradigma de Darwin (Evolución) con el de Glover (Memoria). Han superado las limitantes del algoritmo genético tradicional delegando la carga del "ajuste fino" a un componente especializado (Tabú). Este es el verdadero estado del arte en el diseño de algoritmos de optimización para la industria.</p>
+        </div>
+
+        <div class="footer">
+            Tutorial de Programación: Algoritmos Meméticos para Enrutamiento de Vehículos (CVRP).
+        </div>
+    </div>
+
+</body>
+</html>

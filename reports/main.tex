@@ -1,0 +1,85 @@
+% =====================================================================
+%  Algoritmo Memético para CVRP — Reporte académico
+%  MIAAD UACJ · Optimización Inteligente · Mtro. Raúl Gibrán Porras
+%  Alumno: Javier Augusto Rebull Saucedo (matrícula 263483)
+%  Mayo 2026
+%
+%  Compilación recomendada (Overleaf):
+%      pdflatex → biber → pdflatex → pdflatex
+% =====================================================================
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{algorithm2e}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{csquotes}
+\usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=teal,
+    urlcolor=teal,
+    pdftitle={Algoritmo Memetico para CVRP — MIAAD UACJ},
+    pdfauthor={Javier Augusto Rebull Saucedo}
+}
+
+\graphicspath{{./figures/}}
+\addbibresource{references.bib}
+
+% --- Portada ---
+\title{
+    \vspace{-2cm}
+    \large Universidad Autónoma de Ciudad Juárez \\
+    \large Maestría en Inteligencia Artificial y Analítica de Datos (MIAAD) \\
+    \large Optimización Inteligente \\
+    \vspace{1cm}
+    \Huge \textbf{Algoritmo Memético para el Problema de Enrutamiento de Vehículos con Capacidad (CVRP)} \\
+    \vspace{0.5cm}
+    \large Fusión de Algoritmo Genético y Búsqueda Tabú para optimización combinatoria
+}
+
+\author{
+    \textbf{Javier Augusto Rebull Saucedo} \\
+    Matrícula 263483 \\
+    \vspace{0.3cm}
+    \textit{Profesor:} Mtro. Raúl Gibrán Porras Alaniz
+}
+
+\date{Mayo de 2026}
+
+% =====================================================================
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+Se implementa desde cero un Algoritmo Memético que combina un Algoritmo Genético (exploración global) con Búsqueda Tabú (intensificación local) para resolver el Capacitated Vehicle Routing Problem (CVRP). El cromosoma sigue la representación \emph{Giant Tour} y se decodifica con un \emph{Split} capacitado; la cruza es \emph{Order Crossover} (OX) y la búsqueda local opera por \emph{swaps} con tenencia y aspiración. Se evalúa en tres escenarios de estrés ($N{=}50,Q{=}100$; $N{=}100,Q{=}30$; $N{=}75,Q{=}200$) con multi-seed para validez estadística. Resultados, código y reporte son reproducibles bit a bit.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+% --- Secciones ---
+\input{sections/01_introduccion}
+\input{sections/02_marco_teorico}
+\input{sections/03_metodologia}
+\input{sections/04_experimentos}
+\input{sections/05_resultados}
+\input{sections/06_discusion}
+\input{sections/07_conclusiones}
+
+% --- Bibliografía ---
+\printbibliography[heading=bibintoc, title={Referencias}]
+
+\end{document}

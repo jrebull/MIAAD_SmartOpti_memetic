@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memetico-cvrp"
+version = "0.1.0"
+description = "Algoritmo Memético (GA + Búsqueda Tabú) para el Capacitated Vehicle Routing Problem — MIAAD UACJ"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Javier Augusto Rebull Saucedo", email = "rebull@outlook.com" },
+]
+keywords = ["cvrp", "metaheuristic", "memetic", "tabu-search", "genetic-algorithm", "miaad"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Repository = "https://github.com/jrebull/MIAAD_SmartOpti_memetic"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+extend-select = ["E", "F", "I", "B", "UP", "SIM", "C4"]
+ignore = [
+    "E501",  # line-too-long (cubierto por formatter)
+    "B008",  # function-call-in-default-argument (numpy.random.default_rng)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011", "SIM117"]
+"scripts/*" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_configs = true
+warn_redundant_casts = true
+no_implicit_optional = true
+check_untyped_defs = false
+disallow_untyped_defs = false
+strict_optional = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "slow: pruebas que tardan (marcar con @pytest.mark.slow)",
+    "integration: pruebas de integración end-to-end",
+]
+
+[tool.coverage.run]
+source = ["src/memetico_cvrp"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
