@@ -11,7 +11,6 @@ from memetico_cvrp.genetic import (
     seleccion_torneo,
 )
 
-
 # --------------------------- Población inicial --------------------------------
 
 

@@ -12,7 +12,7 @@ import hashlib
 import json
 import random
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 CapacidadVehiculo = int
@@ -136,7 +136,7 @@ def generar_instancia_cvrp(
         "y_range": list(y_range),
         "demand_range": list(demand_range),
         "csv_md5": _hash_archivo(output_path),
-        "generado_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generado_utc": datetime.now(UTC).isoformat(timespec="seconds"),
     }
     meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

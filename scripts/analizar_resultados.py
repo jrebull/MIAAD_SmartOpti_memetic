@@ -15,8 +15,6 @@ import logging
 import shutil
 from pathlib import Path
 
-import yaml
-
 from memetico_cvrp.metrics import (
     cargar_agregados,
     comparar_costos_inter_escenarios,
@@ -77,7 +75,7 @@ def main() -> int:
         "n_escenarios": len(agregados),
         "tabla_resumen": filas,
         "comparativo_inter_escenarios": comparativo,
-        "costos_por_escenario": {k: v for k, v in costos_por_exp.items()},
+        "costos_por_escenario": dict(costos_por_exp),
     }
     out_path = RESULTS / "analisis_global.json"
     out_path.write_text(json.dumps(analisis, indent=2, ensure_ascii=False) + "\n",

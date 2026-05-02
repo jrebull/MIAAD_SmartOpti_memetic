@@ -152,7 +152,7 @@ def plot_boxplot_costos(
     nombres = list(costos_por_escenario.keys())
     datos = [costos_por_escenario[n] for n in nombres]
     bp = ax.boxplot(datos, tick_labels=nombres, patch_artist=True, widths=0.55, showmeans=True)
-    for patch, color in zip(bp["boxes"], PALETA[1:]):
+    for patch, color in zip(bp["boxes"], PALETA[1:], strict=False):
         patch.set_facecolor(color)
         patch.set_alpha(0.55)
     for median in bp["medians"]:
@@ -175,7 +175,7 @@ def tabla_rutas_dataframe(rutas: list[list[int]], cargas: list[int],
                           capacidad: int, dist: np.ndarray) -> list[dict[str, Any]]:
     """Devuelve una lista de filas (dicts) con info de cada ruta."""
     filas: list[dict[str, Any]] = []
-    for k, (ruta, carga) in enumerate(zip(rutas, cargas), start=1):
+    for k, (ruta, carga) in enumerate(zip(rutas, cargas, strict=False), start=1):
         distancia = float(sum(dist[ruta[i], ruta[i + 1]] for i in range(len(ruta) - 1)))
         filas.append(
             {

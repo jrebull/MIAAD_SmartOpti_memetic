@@ -79,8 +79,8 @@ def main() -> int:
 
     # Imágenes (las copiadas, todas opcionales según existan).
     for img_name in [
-        *[f"convergencia_{k}.png" for k in agregados.keys()],
-        *[f"rutas_{k}.png" for k in agregados.keys()],
+        *[f"convergencia_{k}.png" for k in agregados],
+        *[f"rutas_{k}.png" for k in agregados],
         "boxplot_costos.png",
     ]:
         src = FIG_DIR / img_name

@@ -14,7 +14,7 @@ import platform
 import subprocess
 import sys
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -96,7 +96,7 @@ def dump_run(
     payload["meta"] = {
         "seed": seed,
         "git_commit_hash": git_commit_hash(),
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "timestamp_utc": datetime.now(UTC).isoformat(timespec="seconds"),
         "instancia_path": str(instancia_path),
         "instancia_hash": hash_md5(instancia_path),
         "versiones": versiones_runtime(),
@@ -113,7 +113,7 @@ def dump_run(
         writer = csv.writer(f)
         writer.writerow(["generacion", "mejor_global", "promedio_poblacion"])
         for i, (mejor, prom) in enumerate(
-            zip(resultado.historico_convergencia, resultado.historico_promedio)
+            zip(resultado.historico_convergencia, resultado.historico_promedio, strict=False)
         ):
             writer.writerow([i, f"{mejor:.6f}", f"{prom:.6f}"])
 
@@ -184,7 +184,7 @@ def calcular_agregado(
     cargas_totales_por_run = [sum(r["cargas"]) for r in runs]
     capacidad_total_por_run = [capacidad * v for v in vehiculos]
     utilizaciones = [
-        100.0 * c / k if k else 0.0 for c, k in zip(cargas_totales_por_run, capacidad_total_por_run)
+        100.0 * c / k if k else 0.0 for c, k in zip(cargas_totales_por_run, capacidad_total_por_run, strict=False)
     ]
 
     import statistics

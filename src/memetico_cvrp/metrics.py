@@ -55,15 +55,7 @@ def comparar_costos_inter_escenarios(
     if len(agregados) < 2:
         return {"ok": False, "razon": "se necesitan al menos 2 escenarios"}
 
-    # Coleccionar costos por seed para el Friedman.
-    matriz: dict[int, list[float]] = {}
     ids = list(agregados.keys())
-    for exp_id in ids:
-        seeds = agregados[exp_id].get("seeds", [])
-        # `seeds` y la "distribución" no se exporta directamente, así que reconstruimos
-        # usando los run_seed*.json del directorio.
-        # Para simplicidad, asumimos que los costos están en orden de los seeds.
-    # Sólo reportamos resumen estadístico simple inter-escenarios:
     return {
         "ok": True,
         "ranking_por_costo_mejor": sorted(

@@ -20,7 +20,12 @@ from pathlib import Path
 from memetico_cvrp.data import cargar_instancia
 from memetico_cvrp.distance import calcular_matriz_distancias
 from memetico_cvrp.metrics import cargar_agregados, tabla_resumen
-from memetico_cvrp.plots import plot_convergencia, plot_rutas, tabla_rutas_a_latex, tabla_rutas_dataframe
+from memetico_cvrp.plots import (
+    plot_convergencia,
+    plot_rutas,
+    tabla_rutas_a_latex,
+    tabla_rutas_dataframe,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "data" / "results"

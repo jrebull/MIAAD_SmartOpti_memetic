@@ -15,7 +15,6 @@ from memetico_cvrp.tabu import (
     optimizacion_tabu,
 )
 
-
 # ----------------------------- Vecino swap ------------------------------------
 
 
