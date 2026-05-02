@@ -1,0 +1,20 @@
+{
+  "escenario": "base_tutorial",
+  "num_clientes": 25,
+  "capacidad": 50,
+  "seed": 2026,
+  "x_range": [
+    10,
+    90
+  ],
+  "y_range": [
+    10,
+    90
+  ],
+  "demand_range": [
+    5,
+    15
+  ],
+  "csv_md5": "814dbef1d6f6738f51c79760d38600b0",
+  "generado_utc": "2026-05-02T21:19:37+00:00"
+}

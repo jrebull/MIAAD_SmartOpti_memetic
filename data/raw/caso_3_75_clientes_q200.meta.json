@@ -1,0 +1,20 @@
+{
+  "escenario": "caso_3_consolidacion",
+  "num_clientes": 75,
+  "capacidad": 200,
+  "seed": 20260203,
+  "x_range": [
+    10,
+    90
+  ],
+  "y_range": [
+    10,
+    90
+  ],
+  "demand_range": [
+    5,
+    15
+  ],
+  "csv_md5": "474ada38607c1208795eb977504f1f42",
+  "generado_utc": "2026-05-02T21:19:37+00:00"
+}

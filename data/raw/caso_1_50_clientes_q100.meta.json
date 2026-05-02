@@ -1,0 +1,20 @@
+{
+  "escenario": "caso_1_escala_media",
+  "num_clientes": 50,
+  "capacidad": 100,
+  "seed": 20260201,
+  "x_range": [
+    10,
+    90
+  ],
+  "y_range": [
+    10,
+    90
+  ],
+  "demand_range": [
+    5,
+    15
+  ],
+  "csv_md5": "a51945f4bb03fad887cf2bdf5a25202b",
+  "generado_utc": "2026-05-02T21:19:37+00:00"
+}

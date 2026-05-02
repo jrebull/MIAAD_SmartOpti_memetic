@@ -1,0 +1,20 @@
+{
+  "escenario": "caso_2_alta_densidad",
+  "num_clientes": 100,
+  "capacidad": 30,
+  "seed": 20260202,
+  "x_range": [
+    10,
+    90
+  ],
+  "y_range": [
+    10,
+    90
+  ],
+  "demand_range": [
+    5,
+    15
+  ],
+  "csv_md5": "651f345e5a185ff038454c12589963fc",
+  "generado_utc": "2026-05-02T21:19:37+00:00"
+}
