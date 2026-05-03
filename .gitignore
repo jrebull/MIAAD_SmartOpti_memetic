@@ -59,6 +59,7 @@ node_modules/
 .nitro/
 .cache/
 dist/
+dist          # symlink a .output/public que Nuxt crea a veces
 
 # --- macOS / editores ---
 .DS_Store
