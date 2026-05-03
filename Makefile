@@ -37,6 +37,9 @@ report-assets:     ## Prepara figuras y tablas para el reporte LaTeX
 web-data:          ## Exporta JSONs e imágenes para la web
 	python scripts/exportar_resultados_web.py
 
+playground-sync:   ## Sincroniza el paquete Python al public/playground/ (Pyodide)
+	python scripts/preparar_playground.py
+
 web-dev:           ## Servidor de desarrollo Nuxt
 	npm run dev
 
@@ -58,3 +61,4 @@ ci:                ## Pipeline completo local: lint → test → datos → exper
 	$(MAKE) experiments
 	$(MAKE) report-assets
 	$(MAKE) web-data
+	$(MAKE) playground-sync
