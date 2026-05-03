@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 interface ProgresoEvento {
   gen: number;
@@ -38,6 +38,109 @@ interface ResultadoFinal {
   nodos: Nodo[];
 }
 
+interface EscenarioPreset {
+  id: string;
+  nombre: string;
+  csv: string;
+  N: number;
+  capacidad: number;
+  defaults: {
+    generaciones: number;
+    tamano_poblacion: number;
+    torneo_k: number;
+    prob_tabu: number;
+    iter_tabu: number;
+    tenencia: number;
+    sample_size: number;
+  };
+  seeds: number[];
+  tiempoEstimado: string;
+  alerta?: "tibia" | "fuerte";
+  notaAlerta?: string;
+}
+
+const ESCENARIOS: EscenarioPreset[] = [
+  {
+    id: "base_tutorial",
+    nombre: "Instancia base del tutorial",
+    csv: "instancia_base_25_q50.csv",
+    N: 25,
+    capacidad: 50,
+    defaults: {
+      generaciones: 50,
+      tamano_poblacion: 40,
+      torneo_k: 3,
+      prob_tabu: 0.3,
+      iter_tabu: 20,
+      tenencia: 5,
+      sample_size: 15,
+    },
+    seeds: [2026, 2027, 2028, 2029, 2030],
+    tiempoEstimado: "~10 s",
+  },
+  {
+    id: "caso_1",
+    nombre: "Caso 1 — Escala Media",
+    csv: "caso_1_50_clientes_q100.csv",
+    N: 50,
+    capacidad: 100,
+    defaults: {
+      generaciones: 100,
+      tamano_poblacion: 60,
+      torneo_k: 3,
+      prob_tabu: 0.35,
+      iter_tabu: 30,
+      tenencia: 7,
+      sample_size: 25,
+    },
+    seeds: [2026, 2027, 2028, 2029, 2030],
+    tiempoEstimado: "~1.5–2 min",
+    alerta: "tibia",
+    notaAlerta: "Toma poco más de un minuto. Mantén la pestaña abierta.",
+  },
+  {
+    id: "caso_3",
+    nombre: "Caso 3 — Consolidación",
+    csv: "caso_3_75_clientes_q200.csv",
+    N: 75,
+    capacidad: 200,
+    defaults: {
+      generaciones: 100,
+      tamano_poblacion: 60,
+      torneo_k: 3,
+      prob_tabu: 0.35,
+      iter_tabu: 25,
+      tenencia: 7,
+      sample_size: 25,
+    },
+    seeds: [2026, 2027, 2028, 2029, 2030],
+    tiempoEstimado: "~1.5–2.5 min",
+    alerta: "tibia",
+    notaAlerta: "Toma cerca de dos minutos. Mantén la pestaña abierta.",
+  },
+  {
+    id: "caso_2",
+    nombre: "Caso 2 — Alta Densidad",
+    csv: "caso_2_100_clientes_q30.csv",
+    N: 100,
+    capacidad: 30,
+    defaults: {
+      generaciones: 150,
+      tamano_poblacion: 80,
+      torneo_k: 3,
+      prob_tabu: 0.45,
+      iter_tabu: 35,
+      tenencia: 9,
+      sample_size: 35,
+    },
+    seeds: [2026, 2027, 2028, 2029, 2030],
+    tiempoEstimado: "15–25 min",
+    alerta: "fuerte",
+    notaAlerta:
+      "Este escenario es muy pesado en el navegador (Pyodide es ~3-5× más lento que Python nativo). Te recomiendo ver los resultados precalculados en /escenarios/caso_2.",
+  },
+];
+
 const PYODIDE_VERSION = "0.26.4";
 const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
 const ARCHIVOS_PY = [
@@ -50,6 +153,9 @@ const ARCHIVOS_PY = [
   "memetico_cvrp/memetic.py",
   "memetico_cvrp/feasibility.py",
   "instancia_base_25_q50.csv",
+  "caso_1_50_clientes_q100.csv",
+  "caso_2_100_clientes_q30.csv",
+  "caso_3_75_clientes_q200.csv",
   "runner.py",
 ];
 
@@ -62,6 +168,11 @@ const resultado = ref<ResultadoFinal | null>(null);
 const errorMsg = ref("");
 const nodosBase = ref<Nodo[]>([]);
 
+const escenarioSeleccionado = ref<string>("base_tutorial");
+const escenarioActual = computed<EscenarioPreset>(
+  () => ESCENARIOS.find((e) => e.id === escenarioSeleccionado.value) ?? ESCENARIOS[0]
+);
+
 // Hiperparámetros (sliders).
 const seed = ref(2026);
 const generaciones = ref(50);
@@ -71,6 +182,24 @@ const prob_tabu = ref(0.3);
 const iter_tabu = ref(20);
 const tenencia = ref(5);
 const sample_size = ref(15);
+
+function aplicarDefaults(preset: EscenarioPreset) {
+  generaciones.value = preset.defaults.generaciones;
+  tamano_poblacion.value = preset.defaults.tamano_poblacion;
+  torneo_k.value = preset.defaults.torneo_k;
+  prob_tabu.value = preset.defaults.prob_tabu;
+  iter_tabu.value = preset.defaults.iter_tabu;
+  tenencia.value = preset.defaults.tenencia;
+  sample_size.value = preset.defaults.sample_size;
+}
+
+watch(escenarioSeleccionado, async (nuevoId) => {
+  const preset = ESCENARIOS.find((e) => e.id === nuevoId);
+  if (preset) {
+    aplicarDefaults(preset);
+    await cargarNodosDelEscenario(preset.csv);
+  }
+});
 
 let pyodide: any = null;
 let cancelarBucle = false;
@@ -94,6 +223,21 @@ async function cargarArchivoEnFS(py: any, ruta: string): Promise<void> {
   py.FS.writeFile(destino, contenido);
 }
 
+async function cargarNodosDelEscenario(csv: string) {
+  try {
+    const r = await fetch(`/playground/${csv}`);
+    if (!r.ok) return;
+    const texto = await r.text();
+    const lineas = texto.trim().split("\n").slice(1);
+    nodosBase.value = lineas.map((l) => {
+      const [id, x, y, demanda] = l.split(",").map(Number);
+      return { id, x, y, demanda };
+    });
+  } catch {
+    /* ignorar */
+  }
+}
+
 async function inicializarPyodide(): Promise<void> {
   try {
     if (!(window as any).loadPyodide) {
@@ -112,31 +256,17 @@ async function inicializarPyodide(): Promise<void> {
     mensaje.value = "Cargando NumPy…";
     await pyodide.loadPackage(["numpy"]);
     progresoCarga.value = 80;
-    mensaje.value = "Montando paquete memetico_cvrp…";
+    mensaje.value = "Montando paquete y 4 instancias…";
     for (let i = 0; i < ARCHIVOS_PY.length; i++) {
       await cargarArchivoEnFS(pyodide, ARCHIVOS_PY[i]);
       progresoCarga.value = 80 + Math.floor(((i + 1) / ARCHIVOS_PY.length) * 20);
     }
     pyodide.runPython("import sys\nsys.path.insert(0, '/playground')\nimport runner");
 
-    // Cargar los nodos base para mostrar el mapa antes de correr.
-    pyodide.globals.set("__seed_init", 2026);
-    const initJson = await pyodide.runPythonAsync(`runner.iniciar_run(seed=int(__seed_init), generaciones=1)`);
-    const init = JSON.parse(initJson);
-    // Reseteamos para no dejar estado parcial.
-    await pyodide.runPythonAsync(`runner.reset()`);
-    if (init.rutas_actuales) {
-      // Cargar nodos del primer JSON: re-leer del CSV.
-      const csv = await (await fetch("/playground/instancia_base_25_q50.csv")).text();
-      const lineas = csv.trim().split("\n").slice(1);
-      nodosBase.value = lineas.map((l) => {
-        const [id, x, y, demanda] = l.split(",").map(Number);
-        return { id, x, y, demanda };
-      });
-    }
+    await cargarNodosDelEscenario(escenarioActual.value.csv);
 
     estado.value = "lista";
-    mensaje.value = "Listo. Ajusta los parámetros y dale 'Correr'.";
+    mensaje.value = "Listo. Elige escenario, ajusta parámetros y dale 'Correr'.";
     progresoCarga.value = 100;
   } catch (e: any) {
     estado.value = "error";
@@ -154,7 +284,8 @@ async function correr(): Promise<void> {
   resultado.value = null;
   progreso.value = null;
   historicoVivo.value = [];
-  mensaje.value = "Inicializando población…";
+  const preset = escenarioActual.value;
+  mensaje.value = `Inicializando ${preset.nombre}…`;
 
   await new Promise((r) => setTimeout(r, 30));
 
@@ -167,6 +298,8 @@ async function correr(): Promise<void> {
     pyodide.globals.set("ui_iter_tabu", iter_tabu.value);
     pyodide.globals.set("ui_tenencia", tenencia.value);
     pyodide.globals.set("ui_sample_size", sample_size.value);
+    pyodide.globals.set("ui_instancia_csv", preset.csv);
+    pyodide.globals.set("ui_capacidad", preset.capacidad);
 
     const initCode = `
 runner.iniciar_run(
@@ -178,6 +311,8 @@ runner.iniciar_run(
     iter_tabu=int(ui_iter_tabu),
     tenencia=int(ui_tenencia),
     sample_size=int(ui_sample_size),
+    instancia_csv=str(ui_instancia_csv),
+    capacidad=int(ui_capacidad),
 )
 `;
     const initJson = await pyodide.runPythonAsync(initCode);
@@ -186,7 +321,6 @@ runner.iniciar_run(
     historicoVivo.value = [init.mejor_global];
     mensaje.value = `Generación 0/${generaciones.value} — empezando…`;
 
-    // Bucle JS: 1 generación Python a la vez, cediendo control entre cada una.
     for (let g = 1; g <= generaciones.value; g++) {
       if (cancelarBucle) {
         mensaje.value = `Cancelado en generación ${g - 1}/${generaciones.value}.`;
@@ -196,8 +330,7 @@ runner.iniciar_run(
       const ev = JSON.parse(evJson) as ProgresoEvento;
       progreso.value = ev;
       historicoVivo.value.push(ev.mejor_global);
-      mensaje.value = `Generación ${g}/${generaciones.value} · mejor ${ev.mejor_global.toFixed(2)} · diversidad ${(ev.diversidad * 100).toFixed(0)}%`;
-      // Cede al event loop para que la UI redibuje.
+      mensaje.value = `Gen ${g}/${generaciones.value} · mejor ${ev.mejor_global.toFixed(2)} · diversidad ${(ev.diversidad * 100).toFixed(0)}%`;
       await new Promise((r) => setTimeout(r, 0));
     }
 
@@ -235,7 +368,6 @@ const pathConvergencia = computed<string>(() => {
 });
 
 const rutasParaDibujar = computed(() => {
-  // En vivo: rutas del progreso actual; al final: rutas del resultado.
   const rutas = resultado.value
     ? resultado.value.rutas
     : progreso.value?.rutas_actuales || [];
@@ -276,10 +408,54 @@ onMounted(() => {
         <h1>Playground</h1>
         <p class="text-graphite text-lg">
           El paquete <code>memetico_cvrp</code> ejecutándose <strong>dentro de tu navegador</strong>
-          vía Pyodide / WebAssembly. Ajusta los hiperparámetros y observa la convergencia
-          generación por generación sobre la instancia base de <strong>25 clientes</strong> (Q = 50).
+          vía Pyodide / WebAssembly. Elige uno de los 4 escenarios, ajusta los hiperparámetros
+          y observa la convergencia generación por generación.
         </p>
       </header>
+
+      <!-- Selector de escenario -->
+      <section class="mt-8">
+        <p class="text-xs uppercase tracking-wider text-graphite mb-3">Escenario</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button
+            v-for="e in ESCENARIOS"
+            :key="e.id"
+            @click="escenarioSeleccionado = e.id"
+            :class="[
+              'text-left p-3 rounded-lg border transition-all',
+              escenarioSeleccionado === e.id
+                ? 'border-ink bg-ink text-white shadow-sm'
+                : 'border-slate-200 bg-white hover:border-graphite hover:bg-slate-50',
+            ]"
+          >
+            <p :class="['text-sm font-semibold', escenarioSeleccionado === e.id ? 'text-white' : 'text-ink']">
+              {{ e.nombre }}
+            </p>
+            <p :class="['text-xs font-mono mt-1', escenarioSeleccionado === e.id ? 'text-slate-200' : 'text-graphite']">
+              N={{ e.N }} · Q={{ e.capacidad }}
+            </p>
+            <p :class="['text-xs mt-2', escenarioSeleccionado === e.id ? 'text-slate-300' : 'text-graphite']">
+              ⏱ {{ e.tiempoEstimado }}
+            </p>
+          </button>
+        </div>
+
+        <div
+          v-if="escenarioActual.alerta"
+          :class="[
+            'mt-4 p-3 rounded-lg border text-sm',
+            escenarioActual.alerta === 'fuerte'
+              ? 'border-amber-300 bg-amber-50 text-amber-900'
+              : 'border-sky/40 bg-sky/10 text-ink',
+          ]"
+        >
+          <strong>{{ escenarioActual.alerta === "fuerte" ? "Atención:" : "Nota:" }}</strong>
+          {{ escenarioActual.notaAlerta }}
+          <span v-if="escenarioActual.alerta === 'fuerte'">
+            <NuxtLink :to="`/escenarios/${escenarioActual.id}`" class="underline">Ir a /escenarios/{{ escenarioActual.id }}</NuxtLink>.
+          </span>
+        </div>
+      </section>
 
       <!-- Estado / progreso de carga -->
       <section class="mt-6">
@@ -381,7 +557,7 @@ onMounted(() => {
         </label>
       </section>
 
-      <section class="mt-6 flex items-center gap-3">
+      <section class="mt-6 flex items-center gap-3 flex-wrap">
         <button
           @click="correr"
           :disabled="estado === 'cargando' || estado === 'error'"
@@ -393,7 +569,7 @@ onMounted(() => {
             'disabled:bg-slate-300 disabled:cursor-not-allowed',
           ]"
         >
-          {{ estado === "corriendo" ? "Cancelar" : "Correr memético" }}
+          {{ estado === "corriendo" ? "Cancelar" : `Correr ${escenarioActual.nombre}` }}
         </button>
         <span v-if="progreso" class="text-xs text-graphite font-mono">
           mejor global: {{ progreso.mejor_global.toFixed(2) }} ·
@@ -508,8 +684,9 @@ onMounted(() => {
         <p>
           La animación en vivo funciona porque cada generación se ejecuta como un
           paso atómico desde JS (<code>runner.paso()</code>) cediendo el event loop
-          entre llamadas. Hay un ~10 % de overhead por la ida-y-vuelta JS↔Python,
-          pero a cambio ves la curva crecer.
+          entre llamadas. Los 4 CSVs de las instancias se montan en el filesystem
+          virtual de Pyodide al cargar, así que cambiar de escenario no requiere
+          recargar nada.
         </p>
       </section>
     </main>

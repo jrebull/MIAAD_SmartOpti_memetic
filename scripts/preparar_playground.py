@@ -20,8 +20,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC_PKG = ROOT / "src" / "memetico_cvrp"
 DEST_PKG = ROOT / "public" / "playground" / "memetico_cvrp"
 ASSETS_CODIGO = ROOT / "assets" / "codigo"  # para import estático en /codigo
-INSTANCIA_CSV_SRC = ROOT / "data" / "raw" / "instancia_base_25_q50.csv"
-INSTANCIA_CSV_DEST = ROOT / "public" / "playground" / "instancia_base_25_q50.csv"
+
+# Las 4 instancias oficiales se montan en /playground para que Pyodide
+# pueda correr cualquiera desde el navegador.
+INSTANCIAS_CSV = [
+    "instancia_base_25_q50.csv",
+    "caso_1_50_clientes_q100.csv",
+    "caso_2_100_clientes_q30.csv",
+    "caso_3_75_clientes_q200.csv",
+]
+RAW_DIR = ROOT / "data" / "raw"
+PLAYGROUND_DIR = ROOT / "public" / "playground"
 
 # Archivos del paquete que Pyodide necesita. Excluimos plots.py (matplotlib),
 # metrics.py (no se usa en el playground) e io_utils.py (filesystem-bound).
@@ -57,11 +66,14 @@ def main() -> int:
             shutil.copy(src, ASSETS_CODIGO / nombre)
         log.info("✓ %s", dst.relative_to(ROOT))
 
-    if not INSTANCIA_CSV_SRC.exists():
-        log.error("Falta %s — corre `make generate-data` primero.", INSTANCIA_CSV_SRC)
-        return 1
-    shutil.copy(INSTANCIA_CSV_SRC, INSTANCIA_CSV_DEST)
-    log.info("✓ %s", INSTANCIA_CSV_DEST.relative_to(ROOT))
+    for csv_name in INSTANCIAS_CSV:
+        src = RAW_DIR / csv_name
+        if not src.exists():
+            log.error("Falta %s — corre `make generate-data` primero.", src)
+            return 1
+        dst = PLAYGROUND_DIR / csv_name
+        shutil.copy(src, dst)
+        log.info("✓ %s", dst.relative_to(ROOT))
 
     # El runner.py se mantiene escrito a mano (no se sobrescribe).
     runner = ROOT / "public" / "playground" / "runner.py"

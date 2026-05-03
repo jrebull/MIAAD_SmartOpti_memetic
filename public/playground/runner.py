@@ -96,9 +96,11 @@ def correr_playground(
     iter_tabu: int = 20,
     tenencia: int = 5,
     sample_size: int = 15,
+    instancia_csv: str = "instancia_base_25_q50.csv",
+    capacidad: int = 50,
 ) -> str:
     """Corre el algoritmo memético completo y devuelve el JSON final."""
-    instancia = cargar_instancia("/playground/instancia_base_25_q50.csv", capacidad=50)
+    instancia = cargar_instancia(f"/playground/{instancia_csv}", capacidad=int(capacidad))
     dist = calcular_matriz_distancias(instancia.nodos)
     config = ConfigMemetico(
         generaciones=int(generaciones),
@@ -167,10 +169,12 @@ def iniciar_run(
     iter_tabu: int = 20,
     tenencia: int = 5,
     sample_size: int = 15,
+    instancia_csv: str = "instancia_base_25_q50.csv",
+    capacidad: int = 50,
 ) -> str:
     """Inicializa una corrida iterativa. Devuelve un JSON con el estado inicial."""
     global _estado
-    instancia = cargar_instancia("/playground/instancia_base_25_q50.csv", capacidad=50)
+    instancia = cargar_instancia(f"/playground/{instancia_csv}", capacidad=int(capacidad))
     dist = calcular_matriz_distancias(instancia.nodos)
     config = ConfigMemetico(
         generaciones=int(generaciones),
