@@ -55,7 +55,17 @@ def main() -> int:
     (ASSETS_DATA / "resumen_experimentos.json").write_text(payload, encoding="utf-8")
     log.info("✓ resumen_experimentos.json (public + assets)")
 
+    from memetico_cvrp.data import cargar_instancia
+
     for exp_id, ag in agregados.items():
+        instancia_path = ROOT / ag["instancia"]
+        capacidad = int(ag["capacidad"])
+        instancia = cargar_instancia(instancia_path, capacidad=capacidad)
+        nodos_serializables = [
+            {"id": n.id, "x": n.x, "y": n.y, "demanda": n.demanda}
+            for n in instancia.nodos.values()
+        ]
+
         # Detalle por escenario para la página individual.
         detalle = {
             "id": exp_id,
@@ -69,6 +79,7 @@ def main() -> int:
             "utilizacion_promedio_pct": ag.get("utilizacion_promedio_pct"),
             "parametros": ag.get("parametros"),
             "demanda_total_instancia": ag.get("demanda_total_instancia"),
+            "nodos": nodos_serializables,
         }
         # Mejor solución detallada.
         mejor = RESULTS / exp_id / "mejor_run.json"
