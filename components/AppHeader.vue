@@ -3,6 +3,7 @@ const links = [
   { to: "/", label: "Inicio" },
   { to: "/escenarios", label: "Escenarios" },
   { to: "/playground", label: "Playground" },
+  { to: "/codigo", label: "Código" },
   { to: "/metodologia", label: "Metodología" },
   { to: "/about", label: "Acerca" },
 ];

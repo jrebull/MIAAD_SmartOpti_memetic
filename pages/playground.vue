@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
 interface ProgresoEvento {
   gen: number;
@@ -9,6 +9,8 @@ interface ProgresoEvento {
   promedio: number;
   diversidad: number;
   mejor_cromosoma: number[];
+  rutas_actuales?: number[][];
+  iteraciones_tabu_acumuladas?: number;
 }
 
 interface Nodo {
@@ -53,9 +55,12 @@ const ARCHIVOS_PY = [
 
 const estado = ref<"cargando" | "lista" | "corriendo" | "terminada" | "error">("cargando");
 const mensaje = ref("Cargando Pyodide y NumPy (~10 MB la primera vez)…");
+const progresoCarga = ref(0);
 const progreso = ref<ProgresoEvento | null>(null);
+const historicoVivo = ref<number[]>([]);
 const resultado = ref<ResultadoFinal | null>(null);
 const errorMsg = ref("");
+const nodosBase = ref<Nodo[]>([]);
 
 // Hiperparámetros (sliders).
 const seed = ref(2026);
@@ -68,6 +73,7 @@ const tenencia = ref(5);
 const sample_size = ref(15);
 
 let pyodide: any = null;
+let cancelarBucle = false;
 
 async function cargarArchivoEnFS(py: any, ruta: string): Promise<void> {
   const url = `/playground/${ruta}`;
@@ -75,7 +81,6 @@ async function cargarArchivoEnFS(py: any, ruta: string): Promise<void> {
   if (!r.ok) throw new Error(`fetch ${url} → ${r.status}`);
   const contenido = await r.text();
   const destino = `/playground/${ruta}`;
-  // Crear directorios padre si faltan.
   const partes = destino.split("/").slice(1, -1);
   let acumulado = "";
   for (const p of partes) {
@@ -91,7 +96,6 @@ async function cargarArchivoEnFS(py: any, ruta: string): Promise<void> {
 
 async function inicializarPyodide(): Promise<void> {
   try {
-    // Carga el script de Pyodide desde CDN.
     if (!(window as any).loadPyodide) {
       await new Promise<void>((resolve, reject) => {
         const s = document.createElement("script");
@@ -101,71 +105,60 @@ async function inicializarPyodide(): Promise<void> {
         document.head.appendChild(s);
       });
     }
+    progresoCarga.value = 25;
     mensaje.value = "Inicializando intérprete Python…";
     pyodide = await (window as any).loadPyodide({ indexURL: PYODIDE_CDN });
+    progresoCarga.value = 55;
     mensaje.value = "Cargando NumPy…";
     await pyodide.loadPackage(["numpy"]);
+    progresoCarga.value = 80;
     mensaje.value = "Montando paquete memetico_cvrp…";
-    for (const archivo of ARCHIVOS_PY) {
-      await cargarArchivoEnFS(pyodide, archivo);
+    for (let i = 0; i < ARCHIVOS_PY.length; i++) {
+      await cargarArchivoEnFS(pyodide, ARCHIVOS_PY[i]);
+      progresoCarga.value = 80 + Math.floor(((i + 1) / ARCHIVOS_PY.length) * 20);
     }
-    // Importar el runner.
     pyodide.runPython("import sys\nsys.path.insert(0, '/playground')\nimport runner");
+
+    // Cargar los nodos base para mostrar el mapa antes de correr.
+    pyodide.globals.set("__seed_init", 2026);
+    const initJson = await pyodide.runPythonAsync(`runner.iniciar_run(seed=int(__seed_init), generaciones=1)`);
+    const init = JSON.parse(initJson);
+    // Reseteamos para no dejar estado parcial.
+    await pyodide.runPythonAsync(`runner.reset()`);
+    if (init.rutas_actuales) {
+      // Cargar nodos del primer JSON: re-leer del CSV.
+      const csv = await (await fetch("/playground/instancia_base_25_q50.csv")).text();
+      const lineas = csv.trim().split("\n").slice(1);
+      nodosBase.value = lineas.map((l) => {
+        const [id, x, y, demanda] = l.split(",").map(Number);
+        return { id, x, y, demanda };
+      });
+    }
+
     estado.value = "lista";
     mensaje.value = "Listo. Ajusta los parámetros y dale 'Correr'.";
+    progresoCarga.value = 100;
   } catch (e: any) {
     estado.value = "error";
     errorMsg.value = String(e?.message ?? e);
   }
 }
 
-function animarConvergencia(historico: number[]): void {
-  // Reproduce el histórico generación a generación (~50 ms cada una)
-  // para que el usuario vea la curva crecer aunque el cómputo haya sido bloqueante.
-  if (!historico.length) return;
-  const total = historico.length;
-  const intervalo = Math.max(15, Math.min(80, Math.floor(2500 / total)));
-  let i = 1;
-  progreso.value = {
-    gen: 0,
-    total_gen: total - 1,
-    mejor_global: historico[0],
-    mejor_gen: historico[0],
-    promedio: historico[0],
-    diversidad: 1.0,
-    mejor_cromosoma: [],
-  };
-  const id = setInterval(() => {
-    if (i >= total) {
-      clearInterval(id);
-      return;
-    }
-    progreso.value = {
-      gen: i,
-      total_gen: total - 1,
-      mejor_global: historico[i],
-      mejor_gen: historico[i],
-      promedio: historico[i],
-      diversidad: 1.0,
-      mejor_cromosoma: [],
-    };
-    i++;
-  }, intervalo);
-}
-
 async function correr(): Promise<void> {
-  if (estado.value !== "lista" && estado.value !== "terminada") return;
+  if (estado.value === "corriendo") {
+    cancelarBucle = true;
+    return;
+  }
+  cancelarBucle = false;
   estado.value = "corriendo";
   resultado.value = null;
   progreso.value = null;
-  mensaje.value = "Procesando — Pyodide está corriendo Python en este navegador. No cierres la pestaña (~5–60 s según parámetros).";
+  historicoVivo.value = [];
+  mensaje.value = "Inicializando población…";
 
-  // Cede el hilo para que la UI redibuje el "Corriendo" antes de bloquear.
   await new Promise((r) => setTimeout(r, 30));
 
   try {
-    // Inyecta los parámetros como globales Python y ejecuta vía runPythonAsync.
-    // Este patrón evita problemas de binding al llamar callKwargs sobre un PyProxy.
     pyodide.globals.set("ui_seed", seed.value);
     pyodide.globals.set("ui_generaciones", generaciones.value);
     pyodide.globals.set("ui_tamano_poblacion", tamano_poblacion.value);
@@ -175,8 +168,8 @@ async function correr(): Promise<void> {
     pyodide.globals.set("ui_tenencia", tenencia.value);
     pyodide.globals.set("ui_sample_size", sample_size.value);
 
-    const code = `
-runner.correr_playground(
+    const initCode = `
+runner.iniciar_run(
     seed=int(ui_seed),
     generaciones=int(ui_generaciones),
     tamano_poblacion=int(ui_tamano_poblacion),
@@ -187,54 +180,86 @@ runner.correr_playground(
     sample_size=int(ui_sample_size),
 )
 `;
-    const jsonResultado: string = await pyodide.runPythonAsync(code);
-    const datos = JSON.parse(jsonResultado) as ResultadoFinal;
+    const initJson = await pyodide.runPythonAsync(initCode);
+    const init = JSON.parse(initJson) as ProgresoEvento;
+    progreso.value = init;
+    historicoVivo.value = [init.mejor_global];
+    mensaje.value = `Generación 0/${generaciones.value} — empezando…`;
+
+    // Bucle JS: 1 generación Python a la vez, cediendo control entre cada una.
+    for (let g = 1; g <= generaciones.value; g++) {
+      if (cancelarBucle) {
+        mensaje.value = `Cancelado en generación ${g - 1}/${generaciones.value}.`;
+        break;
+      }
+      const evJson = await pyodide.runPythonAsync(`runner.paso()`);
+      const ev = JSON.parse(evJson) as ProgresoEvento;
+      progreso.value = ev;
+      historicoVivo.value.push(ev.mejor_global);
+      mensaje.value = `Generación ${g}/${generaciones.value} · mejor ${ev.mejor_global.toFixed(2)} · diversidad ${(ev.diversidad * 100).toFixed(0)}%`;
+      // Cede al event loop para que la UI redibuje.
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
+    const finalJson = await pyodide.runPythonAsync(`runner.finalizar()`);
+    const datos = JSON.parse(finalJson) as ResultadoFinal;
     resultado.value = datos;
     estado.value = "terminada";
-    mensaje.value = `Terminado en ${datos.tiempo_segundos.toFixed(2)} s.`;
-    // Animación retro de la convergencia.
-    animarConvergencia(datos.historico_convergencia);
+    mensaje.value = `Terminado en ${datos.tiempo_segundos.toFixed(2)} s · costo ${datos.costo_final.toFixed(2)} · ${datos.num_vehiculos} vehículos.`;
   } catch (e: any) {
     estado.value = "error";
     errorMsg.value = String(e?.message ?? e);
+  } finally {
+    cancelarBucle = false;
   }
 }
 
-function pathConvergencia(): string {
-  // SVG path de la curva de convergencia (mejor global).
+const pathConvergencia = computed<string>(() => {
   const datos = resultado.value
     ? resultado.value.historico_convergencia
-    : progreso.value
-      ? Array.from({ length: progreso.value.gen + 1 }, () => progreso.value!.mejor_global)
-      : [];
+    : historicoVivo.value;
   if (datos.length < 2) return "";
   const minY = Math.min(...datos);
   const maxY = Math.max(...datos);
   const rango = maxY - minY || 1;
   const W = 600;
   const H = 220;
+  const N = Math.max(2, Math.max(generaciones.value, datos.length));
   return datos
     .map((y, i) => {
-      const px = (i / (datos.length - 1)) * (W - 20) + 10;
+      const px = (i / (N - 1)) * (W - 20) + 10;
       const py = H - 20 - ((y - minY) / rango) * (H - 40);
       return `${i === 0 ? "M" : "L"}${px.toFixed(1)},${py.toFixed(1)}`;
     })
     .join(" ");
-}
+});
 
-function vistaRutas(): { rutas: { color: string; puntos: { x: number; y: number }[] }[] } {
-  if (!resultado.value || !resultado.value.nodos.length) return { rutas: [] };
-  const nodos = new Map(resultado.value.nodos.map((n) => [n.id, n]));
-  const paleta = ["#5A72A0", "#83B4FF", "#3D5A80", "#FF7F50", "#2E8B57", "#8B5A8C", "#B6CCE0"];
-  const rutas = resultado.value.rutas.map((ruta, k) => ({
-    color: paleta[k % paleta.length],
-    puntos: ruta.map((cid) => {
-      const n = nodos.get(cid)!;
-      return { x: n.x, y: n.y };
-    }),
-  }));
-  return { rutas };
-}
+const rutasParaDibujar = computed(() => {
+  // En vivo: rutas del progreso actual; al final: rutas del resultado.
+  const rutas = resultado.value
+    ? resultado.value.rutas
+    : progreso.value?.rutas_actuales || [];
+  const nodos = resultado.value ? resultado.value.nodos : nodosBase.value;
+  const mapa = new Map(nodos.map((n) => [n.id, n]));
+  const paleta = ["#5A72A0", "#83B4FF", "#3D5A80", "#FF7F50", "#2E8B57", "#8B5A8C", "#B6CCE0", "#C792EA"];
+  return rutas
+    .filter((r) => r.length >= 2)
+    .map((ruta, k) => ({
+      color: paleta[k % paleta.length],
+      puntos: ruta
+        .map((cid) => mapa.get(cid))
+        .filter((n): n is Nodo => Boolean(n))
+        .map((n) => ({ x: n.x, y: n.y })),
+    }));
+});
+
+const minMaxConv = computed(() => {
+  const datos = resultado.value
+    ? resultado.value.historico_convergencia
+    : historicoVivo.value;
+  if (!datos.length) return { min: 0, max: 0 };
+  return { min: Math.min(...datos), max: Math.max(...datos) };
+});
 
 onMounted(() => {
   inicializarPyodide();
@@ -249,19 +274,18 @@ onMounted(() => {
       <header class="space-y-3">
         <span class="pill">Demo interactiva · Pyodide</span>
         <h1>Playground</h1>
-        <p class="text-graphite">
-          El mismo código Python del paquete <code>memetico_cvrp</code> corriendo
-          dentro de tu navegador (vía Pyodide / WebAssembly). Ajusta los hiperparámetros
-          y observa la convergencia generación por generación sobre la instancia base
-          de <strong>25 clientes</strong> (Q = 50).
+        <p class="text-graphite text-lg">
+          El paquete <code>memetico_cvrp</code> ejecutándose <strong>dentro de tu navegador</strong>
+          vía Pyodide / WebAssembly. Ajusta los hiperparámetros y observa la convergencia
+          generación por generación sobre la instancia base de <strong>25 clientes</strong> (Q = 50).
         </p>
       </header>
 
-      <!-- Estado y mensajes -->
+      <!-- Estado / progreso de carga -->
       <section class="mt-6">
         <div
           :class="[
-            'card text-sm',
+            'card text-sm transition-all',
             estado === 'error' ? 'border-red-300 bg-red-50' : 'border-slate-100',
           ]"
         >
@@ -270,19 +294,19 @@ onMounted(() => {
               v-if="estado === 'cargando' || estado === 'corriendo'"
               class="inline-block h-3 w-3 rounded-full bg-graphite animate-pulse"
             />
-            <span
-              v-else-if="estado === 'lista'"
-              class="inline-block h-3 w-3 rounded-full bg-emerald-500"
-            />
-            <span
-              v-else-if="estado === 'terminada'"
-              class="inline-block h-3 w-3 rounded-full bg-sky"
-            />
-            <span
-              v-else
-              class="inline-block h-3 w-3 rounded-full bg-red-500"
-            />
+            <span v-else-if="estado === 'lista'" class="inline-block h-3 w-3 rounded-full bg-emerald-500" />
+            <span v-else-if="estado === 'terminada'" class="inline-block h-3 w-3 rounded-full bg-sky" />
+            <span v-else class="inline-block h-3 w-3 rounded-full bg-red-500" />
             <span class="text-ink">{{ mensaje }}</span>
+          </div>
+          <div v-if="estado === 'cargando'" class="mt-3 h-2 w-full bg-slate-100 rounded overflow-hidden">
+            <div class="h-full bg-graphite transition-all duration-300" :style="{ width: `${progresoCarga}%` }" />
+          </div>
+          <div v-if="progreso && estado === 'corriendo'" class="mt-3 h-2 w-full bg-slate-100 rounded overflow-hidden">
+            <div
+              class="h-full bg-sky transition-all duration-150"
+              :style="{ width: `${(progreso.gen / progreso.total_gen) * 100}%` }"
+            />
           </div>
           <p v-if="errorMsg" class="mt-3 text-red-700 text-xs font-mono whitespace-pre-wrap">
             {{ errorMsg }}
@@ -360,81 +384,95 @@ onMounted(() => {
       <section class="mt-6 flex items-center gap-3">
         <button
           @click="correr"
-          :disabled="estado !== 'lista' && estado !== 'terminada'"
-          class="px-5 py-2 bg-ink text-white rounded text-sm font-medium hover:bg-graphite disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+          :disabled="estado === 'cargando' || estado === 'error'"
+          :class="[
+            'px-5 py-2 rounded text-sm font-medium transition-all',
+            estado === 'corriendo'
+              ? 'bg-red-600 text-white hover:bg-red-700'
+              : 'bg-ink text-white hover:bg-graphite',
+            'disabled:bg-slate-300 disabled:cursor-not-allowed',
+          ]"
         >
-          {{ estado === "corriendo" ? "Corriendo…" : "Correr memético" }}
+          {{ estado === "corriendo" ? "Cancelar" : "Correr memético" }}
         </button>
-        <p v-if="progreso && estado === 'corriendo'" class="text-xs text-graphite font-mono">
-          Gen {{ progreso.gen }}/{{ progreso.total_gen }} · mejor global
-          {{ progreso.mejor_global.toFixed(2) }} · diversidad
-          {{ (progreso.diversidad * 100).toFixed(0) }}%
-        </p>
+        <span v-if="progreso" class="text-xs text-graphite font-mono">
+          mejor global: {{ progreso.mejor_global.toFixed(2) }} ·
+          diversidad: {{ (progreso.diversidad * 100).toFixed(0) }}% ·
+          gen: {{ progreso.gen }}/{{ progreso.total_gen }}
+        </span>
       </section>
 
-      <!-- Convergencia en vivo -->
-      <section v-if="progreso || resultado" class="mt-10 space-y-3">
-        <h2>Convergencia</h2>
-        <div class="card !p-3">
-          <svg viewBox="0 0 600 220" class="w-full h-auto">
-            <path
-              :d="pathConvergencia()"
-              fill="none"
-              stroke="#1A2130"
-              stroke-width="2"
-            />
+      <!-- Vivo: convergencia + rutas en paralelo -->
+      <section v-if="progreso || resultado" class="mt-10 grid md:grid-cols-2 gap-6">
+        <div class="card">
+          <h3 class="!mt-0 flex items-baseline justify-between">
+            <span>Convergencia</span>
+            <span class="text-xs text-graphite font-mono">
+              {{ minMaxConv.min.toFixed(0) }} – {{ minMaxConv.max.toFixed(0) }}
+            </span>
+          </h3>
+          <svg viewBox="0 0 600 220" class="w-full h-auto mt-2">
+            <line x1="10" :y1="200" x2="590" :y2="200" stroke="#E2E8F0" stroke-width="0.5" />
+            <line x1="10" :y1="20" x2="10" :y2="200" stroke="#E2E8F0" stroke-width="0.5" />
+            <path :d="pathConvergencia" fill="none" stroke="#1A2130" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-          <p class="text-xs text-graphite mt-2 font-mono">
-            Mejor global por generación
+          <p class="text-xs text-graphite mt-2 font-mono">Mejor global por generación</p>
+        </div>
+
+        <div class="card">
+          <h3 class="!mt-0 flex items-baseline justify-between">
+            <span>Mapa de rutas</span>
+            <span v-if="rutasParaDibujar.length" class="text-xs text-graphite font-mono">
+              {{ rutasParaDibujar.length }} vehíc.
+            </span>
+          </h3>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" class="w-full h-auto bg-mist rounded mt-2">
+            <g
+              v-for="(r, i) in rutasParaDibujar"
+              :key="i"
+              :stroke="r.color"
+              stroke-width="0.45"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline :points="r.puntos.map((p) => `${p.x},${100 - p.y}`).join(' ')" />
+              <circle
+                v-for="(p, j) in r.puntos.slice(1, -1)"
+                :key="j"
+                :cx="p.x"
+                :cy="100 - p.y"
+                r="0.9"
+                :fill="r.color"
+              />
+            </g>
+            <polygon points="50,46.5 53.5,53.5 46.5,53.5" fill="#1A2130" />
+          </svg>
+          <p class="text-xs text-graphite mt-2 font-mono text-center">
+            Triángulo: depósito · cada color es una ruta de un vehículo
           </p>
         </div>
       </section>
 
-      <!-- Mapa de rutas -->
-      <section v-if="resultado" class="mt-10 space-y-3">
-        <h2>Solución</h2>
-        <div class="grid md:grid-cols-3 gap-4">
-          <div class="card md:col-span-1 space-y-3">
-            <h3 class="!mt-0">Métricas</h3>
-            <dl class="grid grid-cols-2 gap-y-2 text-sm">
-              <dt class="text-graphite">Costo final</dt>
-              <dd class="font-mono text-ink">{{ resultado.costo_final.toFixed(2) }}</dd>
-              <dt class="text-graphite">Vehículos</dt>
-              <dd class="font-mono text-ink">{{ resultado.num_vehiculos }}</dd>
-              <dt class="text-graphite">Utilización</dt>
-              <dd class="font-mono text-ink">{{ resultado.utilizacion_pct.toFixed(1) }} %</dd>
-              <dt class="text-graphite">Gen. del mejor</dt>
-              <dd class="font-mono text-ink">{{ resultado.generacion_mejor }}</dd>
-              <dt class="text-graphite">Tiempo</dt>
-              <dd class="font-mono text-ink">{{ resultado.tiempo_segundos.toFixed(2) }} s</dd>
-              <dt class="text-graphite">Iter. Tabú</dt>
-              <dd class="font-mono text-ink">{{ resultado.iteraciones_tabu_aplicadas }}</dd>
-              <dt class="text-graphite">No-mejorantes</dt>
-              <dd class="font-mono text-ink">{{ resultado.aceptaciones_no_mejorantes_tabu }}</dd>
-            </dl>
+      <!-- Resultado final -->
+      <section v-if="resultado" class="mt-10 space-y-4">
+        <h2>Resultado final</h2>
+        <div class="grid md:grid-cols-4 gap-4">
+          <div class="card">
+            <p class="text-xs uppercase text-graphite tracking-wide">Costo final</p>
+            <p class="text-2xl font-mono text-ink mt-1">{{ resultado.costo_final.toFixed(2) }}</p>
           </div>
-
-          <div class="card md:col-span-2">
-            <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" class="w-full h-auto bg-mist rounded">
-              <g v-for="(r, i) in vistaRutas().rutas" :key="i" :stroke="r.color" stroke-width="0.4" fill="none">
-                <polyline
-                  :points="r.puntos.map((p) => `${p.x},${100 - p.y}`).join(' ')"
-                />
-                <circle
-                  v-for="(p, j) in r.puntos.slice(1, -1)"
-                  :key="j"
-                  :cx="p.x"
-                  :cy="100 - p.y"
-                  r="0.9"
-                  :fill="r.color"
-                />
-              </g>
-              <!-- Depósito -->
-              <polygon points="50,47 53,53 47,53" fill="#1A2130" />
-            </svg>
-            <p class="text-xs text-graphite mt-2 font-mono text-center">
-              Triángulo: depósito · cada color es una ruta de un vehículo
-            </p>
+          <div class="card">
+            <p class="text-xs uppercase text-graphite tracking-wide">Vehículos</p>
+            <p class="text-2xl font-mono text-ink mt-1">{{ resultado.num_vehiculos }}</p>
+          </div>
+          <div class="card">
+            <p class="text-xs uppercase text-graphite tracking-wide">Utilización</p>
+            <p class="text-2xl font-mono text-ink mt-1">{{ resultado.utilizacion_pct.toFixed(1) }} %</p>
+          </div>
+          <div class="card">
+            <p class="text-xs uppercase text-graphite tracking-wide">Tiempo</p>
+            <p class="text-2xl font-mono text-ink mt-1">{{ resultado.tiempo_segundos.toFixed(2) }} s</p>
           </div>
         </div>
 
@@ -448,11 +486,7 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(ruta, i) in resultado.rutas"
-                :key="i"
-                class="border-t border-slate-100"
-              >
+              <tr v-for="(ruta, i) in resultado.rutas" :key="i" class="border-t border-slate-100">
                 <td class="py-2 px-3 text-graphite">{{ i + 1 }}</td>
                 <td class="py-2 px-3 text-right">
                   {{ resultado.cargas[i] }} / {{ resultado.configuracion.capacidad }}
@@ -469,15 +503,13 @@ onMounted(() => {
           <strong>Notas técnicas.</strong> Pyodide v{{ PYODIDE_VERSION }} carga el
           intérprete Python + NumPy en el navegador (~10 MB la primera vez, en caché
           después). El paquete <code>memetico_cvrp</code> es <em>el mismo código Python
-          del repo</em>, no una reimplementación: se sincroniza con
-          <code>scripts/preparar_playground.py</code>.
+          del repo</em>: lo ves en <NuxtLink to="/codigo">/código</NuxtLink>.
         </p>
         <p>
-          La instancia base es la del tutorial (seed = 2026, N = 25, Q = 50). Los
-          tres escenarios oficiales (50/100/75 clientes) no se ejecutan aquí porque
-          tomarían entre 30 s y 5 min en el navegador del visitante; sus resultados
-          precalculados están en
-          <NuxtLink to="/escenarios">/escenarios</NuxtLink>.
+          La animación en vivo funciona porque cada generación se ejecuta como un
+          paso atómico desde JS (<code>runner.paso()</code>) cediendo el event loop
+          entre llamadas. Hay un ~10 % de overhead por la ida-y-vuelta JS↔Python,
+          pero a cambio ves la curva crecer.
         </p>
       </section>
     </main>

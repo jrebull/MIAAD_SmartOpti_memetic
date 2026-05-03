@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC_PKG = ROOT / "src" / "memetico_cvrp"
 DEST_PKG = ROOT / "public" / "playground" / "memetico_cvrp"
+ASSETS_CODIGO = ROOT / "assets" / "codigo"  # para import estático en /codigo
 INSTANCIA_CSV_SRC = ROOT / "data" / "raw" / "instancia_base_25_q50.csv"
 INSTANCIA_CSV_DEST = ROOT / "public" / "playground" / "instancia_base_25_q50.csv"
 
@@ -41,6 +42,7 @@ log = logging.getLogger("preparar_playground")
 
 def main() -> int:
     DEST_PKG.mkdir(parents=True, exist_ok=True)
+    ASSETS_CODIGO.mkdir(parents=True, exist_ok=True)
 
     for nombre in ARCHIVOS:
         src = SRC_PKG / nombre
@@ -49,6 +51,10 @@ def main() -> int:
             log.error("Falta %s", src)
             return 1
         shutil.copy(src, dst)
+        # Copia espejo a assets/codigo/ para que la página /codigo
+        # haga import estático (?raw) durante el build de Vite.
+        if nombre != "__init__.py":
+            shutil.copy(src, ASSETS_CODIGO / nombre)
         log.info("✓ %s", dst.relative_to(ROOT))
 
     if not INSTANCIA_CSV_SRC.exists():

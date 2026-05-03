@@ -16,6 +16,7 @@ export default defineNuxtConfig({
         "/escenarios/caso_2",
         "/escenarios/caso_3",
         "/playground",
+        "/codigo",
       ],
       crawlLinks: true,
     },

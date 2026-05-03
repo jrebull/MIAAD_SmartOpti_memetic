@@ -22,7 +22,7 @@ function fmt(x?: number, dec = 2): string {
 
 <template>
   <NuxtLink :to="`/escenarios/${escenario.id}`" class="no-underline group">
-    <div class="card hover:border-graphite transition-colors space-y-4">
+    <div class="card hover:border-graphite hover:-translate-y-0.5 hover:shadow-md transition-all space-y-4">
       <header class="flex items-baseline justify-between">
         <h3 class="!mt-0 !mb-0 group-hover:text-ink">{{ escenario.nombre }}</h3>
         <span class="pill">{{ escenario.id }}</span>
