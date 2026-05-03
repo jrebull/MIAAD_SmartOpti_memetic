@@ -3,20 +3,21 @@
 
 \subsection{Escenarios}
 
-Se evalúa el algoritmo memético sobre tres escenarios CVRP deterministas. Cada instancia se genera con una semilla específica y queda persistida en \texttt{data/raw/} junto con su archivo \texttt{.meta.json} (que registra parámetros, hash MD5 y \emph{timestamp}).
+Se evalúa el algoritmo memético sobre tres escenarios CVRP deterministas. Cada instancia se genera con una semilla específica y queda persistida en \pyid{data/raw/} junto con su archivo \pyid{.meta.json} (que registra parámetros, hash MD5 y \emph{timestamp}).
 
 \begin{table}[H]
 \centering
+\small
 \caption{Escenarios evaluados. Las semillas son las pactadas en el plan; cinco \emph{runs} por escenario.}
-\begin{tabular}{lrrrl}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}Xrr r >{\raggedright\arraybackslash}X}
 \toprule
-Escenario & $N$ clientes & $Q$ & Semilla instancia & \emph{Seeds} runs \\
+Escenario & $N$ & $Q$ & Semilla & \emph{Seeds} runs \\
 \midrule
-Caso 1 — Escala Media           & 50  & 100 & 20\,260\,201 & 2026, 2027, 2028, 2029, 2030 \\
-Caso 2 — Alta Densidad          & 100 & 30  & 20\,260\,202 & 2026, 2027, 2028, 2029, 2030 \\
-Caso 3 — Consolidación          & 75  & 200 & 20\,260\,203 & 2026, 2027, 2028, 2029, 2030 \\
+Caso 1 — Escala Media           & 50  & 100 & 20\,260\,201 & 2026--2030 \\
+Caso 2 — Alta Densidad          & 100 & 30  & 20\,260\,202 & 2026--2030 \\
+Caso 3 — Consolidación          & 75  & 200 & 20\,260\,203 & 2026--2030 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \subsection{Justificación del diseño multi-seed}
@@ -27,6 +28,7 @@ Reportar un único \emph{run} con suerte es engañoso: las metaheurísticas esto
 
 \begin{table}[H]
 \centering
+\small
 \caption{Hiperparámetros por escenario.}
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -43,4 +45,4 @@ Caso 3 & 100 & 60 & 3 & 0.35 & 25 & 7 & 25 \\
 
 \subsection{Entorno}
 
-Todos los experimentos se ejecutan localmente (no se usa cómputo distribuido). El entorno está documentado en \texttt{requirements.txt}: NumPy 2.4, SciPy 1.17, pytest 9.0, Python 3.11+. La máquina de referencia es macOS 25.5 con Python 3.14.
+Todos los experimentos se ejecutan localmente (no se usa cómputo distribuido). El entorno está documentado en \pyid{requirements.txt}: NumPy 2.4, SciPy 1.17, pytest 9.0, Python 3.11+. La máquina de referencia es macOS 25.5 con Python 3.14.

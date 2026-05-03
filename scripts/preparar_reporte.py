@@ -110,8 +110,9 @@ def main() -> int:
         lineas = [
             "\\begin{table}[H]",
             "\\centering",
+            "\\small",
             "\\caption{Resumen de resultados por escenario}",
-            "\\begin{tabular}{lrrrrrr}",
+            "\\begin{tabularx}{\\linewidth}{>{\\raggedright\\arraybackslash}Xrrrrrr}",
             "\\toprule",
             "Escenario & Mejor & Media & Std & Veh. (med.) & Útil.\\% & Tiempo (s) \\\\",
             "\\midrule",
@@ -122,7 +123,7 @@ def main() -> int:
                 f"{f['costo_std']:.2f} & {f['vehiculos_media']:.1f} & "
                 f"{f['utilizacion_pct']:.1f} & {f['tiempo_media_s']:.2f} \\\\"
             )
-        lineas += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
+        lineas += ["\\bottomrule", "\\end{tabularx}", "\\end{table}"]
         (TBL_DIR / "resumen_global.tex").write_text("\n".join(lineas) + "\n", encoding="utf-8")
         log.info("✓ reports/tables/resumen_global.tex")
 

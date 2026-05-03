@@ -202,18 +202,20 @@ def tabla_rutas_a_latex(filas: list[dict[str, Any]], titulo: str = "Rutas") -> s
     lineas = [
         "\\begin{table}[H]",
         "\\centering",
-        "\\small",
+        "\\footnotesize",
         f"\\caption{{{titulo}}}",
-        "\\begin{tabularx}{\\linewidth}{rXrrrrr}",
+        # raggedright + arraybackslash permite que la columna X rompa líneas
+        # naturalmente; sin ello tabularx justifica y trata la celda como
+        # un único bloque rígido que desborda con secuencias largas.
+        "\\begin{tabularx}{\\linewidth}{r>{\\raggedright\\arraybackslash}Xrrrrr}",
         "\\toprule",
         "Veh. & Secuencia & Clientes & Carga & Cap. & Útil.\\% & Distancia \\\\",
         "\\midrule",
     ]
     for f in filas:
-        # Las flechas → se reemplazan por $\to\,$ (con espacio fino) para que
-        # LaTeX pueda romper línea entre nodos. Sin el espacio, la secuencia
-        # entera se trata como una sola palabra y desborda.
-        secuencia = f["secuencia"].replace(" → ", "\\,$\\to$\\,")
+        # Flecha en modo texto (rompible). \textrightarrow + espacio normal
+        # permite que TeX inserte saltos de línea entre nodos.
+        secuencia = f["secuencia"].replace(" → ", " \\textrightarrow\\ ")
         lineas.append(
             f"{f['vehiculo']} & {secuencia} & {f['num_clientes']} & {f['carga']} & "
             f"{f['capacidad']} & {f['utilizacion_pct']:.1f} & {f['distancia_ruta']:.2f} \\\\"
