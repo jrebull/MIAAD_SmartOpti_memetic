@@ -16,13 +16,30 @@
 \usepackage{amsmath, amssymb}
 \usepackage{algorithm2e}
 \usepackage{booktabs}
+\usepackage{tabularx}        % tablas con columnas X que se ajustan solas
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{csquotes}
+\usepackage{microtype}       % micro-ajustes de espaciado contra overflow
+\usepackage{seqsplit}        % rompe identificadores largos en \texttt
 \usepackage[backend=biber, style=numeric, sorting=none]{biblatex}
+\usepackage{xurl}            % URLs largas se rompen donde sea (debe ir antes de hyperref)
 \usepackage{hyperref}
+
+% Para nombres tipo `aceptaciones_no_mejorantes_tabu`:
+% atajo \pyid{...} = \texttt{} pero con guión bajo permitido y posibilidad
+% de romper línea en cada caracter. Usado en prosa para identificadores largos.
+\newcommand{\pyid}[1]{\texttt{\seqsplit{#1}}}
+
+% Caja destacada para llamadas de atención (sitio web, demo, etc.).
+\newcommand{\callout}[2]{%
+  \begin{center}
+  \fcolorbox{teal!50}{teal!7}{\begin{minipage}{0.92\linewidth}\vspace{0.3em}
+    \textbf{\color{teal!70!black}#1}\par\vspace{0.4em}#2\vspace{0.3em}
+  \end{minipage}}
+  \end{center}}
 
 \hypersetup{
     colorlinks=true,

@@ -192,21 +192,31 @@ def tabla_rutas_dataframe(rutas: list[list[int]], cargas: list[int],
 
 
 def tabla_rutas_a_latex(filas: list[dict[str, Any]], titulo: str = "Rutas") -> str:
-    """Convierte la tabla de rutas en un fragmento LaTeX `tabular`."""
+    """Convierte la tabla de rutas en un fragmento LaTeX `tabularx`.
+
+    Usa una columna `X` (con `tabularx`) para la secuencia, que se ajusta al
+    ancho disponible y rompe líneas si es necesario. Evita overflow horizontal
+    en escenarios con rutas largas (caso_3 con Q=200 visita 15-20 clientes
+    por ruta).
+    """
     lineas = [
         "\\begin{table}[H]",
         "\\centering",
+        "\\small",
         f"\\caption{{{titulo}}}",
-        "\\begin{tabular}{rlrrrrr}",
+        "\\begin{tabularx}{\\linewidth}{rXrrrrr}",
         "\\toprule",
         "Veh. & Secuencia & Clientes & Carga & Cap. & Útil.\\% & Distancia \\\\",
         "\\midrule",
     ]
     for f in filas:
-        secuencia = f["secuencia"].replace("→", "$\\to$")
+        # Las flechas → se reemplazan por $\to\,$ (con espacio fino) para que
+        # LaTeX pueda romper línea entre nodos. Sin el espacio, la secuencia
+        # entera se trata como una sola palabra y desborda.
+        secuencia = f["secuencia"].replace(" → ", "\\,$\\to$\\,")
         lineas.append(
             f"{f['vehiculo']} & {secuencia} & {f['num_clientes']} & {f['carga']} & "
             f"{f['capacidad']} & {f['utilizacion_pct']:.1f} & {f['distancia_ruta']:.2f} \\\\"
         )
-    lineas += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
+    lineas += ["\\bottomrule", "\\end{tabularx}", "\\end{table}"]
     return "\n".join(lineas)

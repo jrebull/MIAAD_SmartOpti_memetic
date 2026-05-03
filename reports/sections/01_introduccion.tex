@@ -16,3 +16,12 @@ Este reporte documenta la implementación \textbf{desde cero} (sin librerías de
 \end{itemize}
 
 El código completo, con instrucciones de reproducción, está disponible en \url{https://github.com/jrebull/MIAAD_SmartOpti_memetic}.
+
+\callout{Sitio interactivo del proyecto: \href{https://miaadmemetic.netlify.app}{\nolinkurl{miaadmemetic.netlify.app}}}{%
+Toda esta investigación tiene una versión \emph{viva} en línea. El sitio expone:%
+\begin{itemize}\setlength\itemsep{0pt}
+  \item \textbf{Dashboard de resultados} — los cuatro escenarios con sus métricas, gráficas de convergencia y mapas de rutas pre\-calculados.
+  \item \textbf{Playground Pyodide} — el mismo paquete \pyid{memetico\_cvrp} ejecut\'andose dentro del navegador del visitante v\'ia WebAssembly. Permite ajustar hiperpar\'ametros con \emph{sliders} y observar la convergencia generaci\'on por generaci\'on en vivo, sobre cualquiera de los cuatro escenarios.
+  \item \textbf{Visor del c\'odigo fuente} de los siete m\'odulos del paquete con \emph{syntax highlighting} y descripci\'on de cada uno (\href{https://miaadmemetic.netlify.app/codigo}{/codigo}).
+  \item \textbf{Reproducibilidad documentada}: instrucciones de un solo comando (\texttt{make ci}) para regenerar todos los resultados desde cero.
+\end{itemize}}

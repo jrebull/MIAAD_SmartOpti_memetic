@@ -3,7 +3,7 @@
 
 \subsection{Implementación}
 
-El sistema se desarrolla en Python 3.11+ con NumPy, sin recurrir a librerías de optimización VRP externas (OR-Tools, PyVRP, VRPy). Cada componente reside en un módulo independiente y testable de \texttt{src/memetico\_cvrp/}:
+El sistema se desarrolla en Python 3.11+ con NumPy, sin recurrir a librerías de optimización VRP externas (OR-Tools, PyVRP, VRPy). Cada componente reside en un módulo independiente y testable de \pyid{src/memetico\_cvrp/}:
 
 \begin{itemize}
     \item \texttt{data.py} — Generación y carga de instancias (CSV deterministas).
@@ -35,4 +35,4 @@ Los hiperparámetros por escenario están versionados en \texttt{config/experime
 
 \subsection{Reproducibilidad}
 
-Cada \emph{run} se serializa con metadatos completos: \texttt{git\_commit\_hash}, versión de Python y librerías, hash MD5 de la instancia y \emph{timestamp} UTC. El script \texttt{scripts/verificar\_reproducibilidad.py} re-ejecuta los runs en modo \emph{smoke} y compara contra los resultados anteriores. Dos ejecuciones del mismo \emph{seed} sobre la misma máquina producen resultados idénticos bit a bit.
+Cada \emph{run} se serializa con metadatos completos: \pyid{git\_commit\_hash}, versión de Python y librerías, hash MD5 de la instancia y \emph{timestamp} UTC. El script \pyid{scripts/verificar\_reproducibilidad.py} re-ejecuta los runs en modo \emph{smoke} y compara contra los resultados anteriores. Dos ejecuciones del mismo \emph{seed} sobre la misma máquina producen resultados idénticos bit a bit.

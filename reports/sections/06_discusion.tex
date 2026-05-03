@@ -11,7 +11,7 @@ El Caso 3 ($N=75$, $Q=200$) es el escenario más fácil para el memético: la ca
 
 \subsection{Aporte del componente Tabú vs un GA puro}
 
-Aunque este reporte no incluye un \emph{ablation study} formal contra una versión "GA puro" (sin Tabú), la métrica \texttt{aceptaciones\_no\_mejorantes\_tabu} en los \texttt{run\_seed*.json} permite estimar cuánta diversificación dirigida está aportando la Tabú. En todos los escenarios esta métrica es positiva en cada \emph{run}, lo que indica que la Tabú efectivamente acepta empeoramientos temporales para escapar de óptimos locales. La consecuencia visible es que el histórico de convergencia muestra mejoras en generaciones tardías (después de la 50, e incluso después de la 100), algo poco común en GA puros donde el progreso se estanca tras pocas generaciones.
+Aunque este reporte no incluye un \emph{ablation study} formal contra una versión "GA puro" (sin Tabú), la métrica \pyid{aceptaciones\_no\_mejorantes\_tabu} en los \pyid{run\_seed*.json} permite estimar cuánta diversificación dirigida está aportando la Tabú. En todos los escenarios esta métrica es positiva en cada \emph{run}, lo que indica que la Tabú efectivamente acepta empeoramientos temporales para escapar de óptimos locales. La consecuencia visible es que el histórico de convergencia muestra mejoras en generaciones tardías (después de la 50, e incluso después de la 100), algo poco común en GA puros donde el progreso se estanca tras pocas generaciones.
 
 \subsection{Limitaciones reconocidas}
 
