@@ -1,0 +1,304 @@
+{
+  "id": "base_tutorial",
+  "nombre": "Instancia base del tutorial",
+  "instancia": "data/raw/instancia_base_25_q50.csv",
+  "capacidad": 50,
+  "n_runs": 5,
+  "costo": {
+    "min": 572.3446022860259,
+    "max": 594.5936307992253,
+    "media": 581.3750130978026,
+    "mediana": 575.1928637627868,
+    "std": 9.751708951747714
+  },
+  "vehiculos": {
+    "min": 6.0,
+    "max": 6.0,
+    "media": 6.0,
+    "mediana": 6.0,
+    "std": 0.0
+  },
+  "tiempo_segundos": {
+    "min": 2.367939290998038,
+    "max": 2.657544207992032,
+    "media": 2.5325838661985474,
+    "mediana": 2.5616035409912,
+    "std": 0.10370276915792632
+  },
+  "utilizacion_promedio_pct": 87.0,
+  "parametros": {
+    "generaciones": 50,
+    "tamano_poblacion": 40,
+    "torneo_k": 3,
+    "prob_tabu": 0.3,
+    "iter_tabu": 20,
+    "tenencia": 5,
+    "sample_size": 15,
+    "mutacion_prob": 0.0
+  },
+  "demanda_total_instancia": 261,
+  "nodos": [
+    {
+      "id": 0,
+      "x": 50.0,
+      "y": 50.0,
+      "demanda": 0
+    },
+    {
+      "id": 1,
+      "x": 25.0,
+      "y": 50.0,
+      "demanda": 13
+    },
+    {
+      "id": 2,
+      "x": 75.0,
+      "y": 23.0,
+      "demanda": 8
+    },
+    {
+      "id": 3,
+      "x": 86.0,
+      "y": 89.0,
+      "demanda": 13
+    },
+    {
+      "id": 4,
+      "x": 63.0,
+      "y": 83.0,
+      "demanda": 13
+    },
+    {
+      "id": 5,
+      "x": 72.0,
+      "y": 85.0,
+      "demanda": 12
+    },
+    {
+      "id": 6,
+      "x": 40.0,
+      "y": 10.0,
+      "demanda": 14
+    },
+    {
+      "id": 7,
+      "x": 20.0,
+      "y": 24.0,
+      "demanda": 9
+    },
+    {
+      "id": 8,
+      "x": 22.0,
+      "y": 67.0,
+      "demanda": 5
+    },
+    {
+      "id": 9,
+      "x": 72.0,
+      "y": 50.0,
+      "demanda": 8
+    },
+    {
+      "id": 10,
+      "x": 60.0,
+      "y": 42.0,
+      "demanda": 10
+    },
+    {
+      "id": 11,
+      "x": 55.0,
+      "y": 58.0,
+      "demanda": 13
+    },
+    {
+      "id": 12,
+      "x": 19.0,
+      "y": 53.0,
+      "demanda": 6
+    },
+    {
+      "id": 13,
+      "x": 81.0,
+      "y": 78.0,
+      "demanda": 9
+    },
+    {
+      "id": 14,
+      "x": 46.0,
+      "y": 68.0,
+      "demanda": 7
+    },
+    {
+      "id": 15,
+      "x": 83.0,
+      "y": 49.0,
+      "demanda": 5
+    },
+    {
+      "id": 16,
+      "x": 57.0,
+      "y": 56.0,
+      "demanda": 12
+    },
+    {
+      "id": 17,
+      "x": 64.0,
+      "y": 21.0,
+      "demanda": 11
+    },
+    {
+      "id": 18,
+      "x": 84.0,
+      "y": 80.0,
+      "demanda": 12
+    },
+    {
+      "id": 19,
+      "x": 24.0,
+      "y": 64.0,
+      "demanda": 13
+    },
+    {
+      "id": 20,
+      "x": 86.0,
+      "y": 72.0,
+      "demanda": 11
+    },
+    {
+      "id": 21,
+      "x": 77.0,
+      "y": 43.0,
+      "demanda": 11
+    },
+    {
+      "id": 22,
+      "x": 82.0,
+      "y": 71.0,
+      "demanda": 13
+    },
+    {
+      "id": 23,
+      "x": 76.0,
+      "y": 13.0,
+      "demanda": 14
+    },
+    {
+      "id": 24,
+      "x": 38.0,
+      "y": 26.0,
+      "demanda": 5
+    },
+    {
+      "id": 25,
+      "x": 76.0,
+      "y": 23.0,
+      "demanda": 14
+    }
+  ],
+  "mejor_run": {
+    "seed": 2028,
+    "experimento_id": "base_tutorial",
+    "costo_final": 572.3446022860259,
+    "num_vehiculos": 6,
+    "rutas": [
+      [
+        0,
+        10,
+        21,
+        15,
+        9,
+        16,
+        0
+      ],
+      [
+        0,
+        22,
+        20,
+        13,
+        11,
+        0
+      ],
+      [
+        0,
+        18,
+        3,
+        5,
+        4,
+        0
+      ],
+      [
+        0,
+        1,
+        12,
+        19,
+        8,
+        14,
+        0
+      ],
+      [
+        0,
+        2,
+        25,
+        23,
+        17,
+        0
+      ],
+      [
+        0,
+        24,
+        6,
+        7,
+        0
+      ]
+    ],
+    "cargas": [
+      46,
+      46,
+      50,
+      44,
+      47,
+      28
+    ],
+    "mejor_cromosoma": [
+      10,
+      21,
+      15,
+      9,
+      16,
+      22,
+      20,
+      13,
+      11,
+      18,
+      3,
+      5,
+      4,
+      1,
+      12,
+      19,
+      8,
+      14,
+      2,
+      25,
+      23,
+      17,
+      24,
+      6,
+      7
+    ],
+    "configuracion": {
+      "generaciones": 50,
+      "tamano_poblacion": 40,
+      "torneo_k": 3,
+      "prob_tabu": 0.3,
+      "iter_tabu": 20,
+      "tenencia": 5,
+      "sample_size": 15,
+      "seed": 2028,
+      "capacidad": 50,
+      "mutacion_prob": 0.0
+    },
+    "tiempo_ejecucion": 2.367939290998038,
+    "generacion_mejor": 25
+  }
+}

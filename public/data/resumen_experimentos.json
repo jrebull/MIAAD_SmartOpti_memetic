@@ -1,6 +1,20 @@
 {
-  "n_escenarios": 3,
+  "n_escenarios": 4,
   "escenarios": [
+    {
+      "id": "base_tutorial",
+      "nombre": "Instancia base del tutorial",
+      "n_runs": 5,
+      "costo_mejor": 572.3446022860259,
+      "costo_media": 581.3750130978026,
+      "costo_std": 9.751708951747714,
+      "vehiculos_mejor": 6,
+      "vehiculos_media": 6.0,
+      "utilizacion_pct": 87.0,
+      "tiempo_media_s": 2.5325838661985474,
+      "iteraciones_tabu_total": 59120,
+      "no_mejorantes_total": 31244
+    },
     {
       "id": "caso_1",
       "nombre": "Escala Media",

@@ -1,6 +1,20 @@
 {
-  "n_escenarios": 3,
+  "n_escenarios": 4,
   "tabla_resumen": [
+    {
+      "id": "base_tutorial",
+      "nombre": "Instancia base del tutorial",
+      "n_runs": 5,
+      "costo_mejor": 572.3446022860259,
+      "costo_media": 581.3750130978026,
+      "costo_std": 9.751708951747714,
+      "vehiculos_mejor": 6,
+      "vehiculos_media": 6.0,
+      "utilizacion_pct": 87.0,
+      "tiempo_media_s": 2.5325838661985474,
+      "iteraciones_tabu_total": 59120,
+      "no_mejorantes_total": 31244
+    },
     {
       "id": "caso_1",
       "nombre": "Escala Media",
@@ -47,14 +61,22 @@
   "comparativo_inter_escenarios": {
     "ok": true,
     "ranking_por_costo_mejor": [
+      "base_tutorial",
       "caso_1",
       "caso_3",
       "caso_2"
     ],
-    "spread_costo_mejor": 2358.6102723959702,
-    "media_de_medias_costo": 1632.9845009652572
+    "spread_costo_mejor": 2491.3114220897924,
+    "media_de_medias_costo": 1370.0821289983935
   },
   "costos_por_escenario": {
+    "Instancia base del tutorial": [
+      594.5936307992253,
+      575.1928637627868,
+      572.3446022860259,
+      591.8322192645575,
+      572.9117493764176
+    ],
     "Escala Media": [
       752.4017585177529,
       813.2283405331957,

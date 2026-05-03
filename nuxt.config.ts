@@ -12,6 +12,7 @@ export default defineNuxtConfig({
       // estático en otra página crawleable. Las declaramos explícitamente para
       // que Netlify sirva HTML estático en visitas directas.
       routes: [
+        "/escenarios/base_tutorial",
         "/escenarios/caso_1",
         "/escenarios/caso_2",
         "/escenarios/caso_3",

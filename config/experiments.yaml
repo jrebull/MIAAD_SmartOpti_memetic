@@ -5,6 +5,21 @@
 # Ver docs/REPRODUCIBILITY.md para verificar resultados.
 
 experimentos:
+  - id: base_tutorial
+    nombre: "Instancia base del tutorial"
+    instancia: "data/raw/instancia_base_25_q50.csv"
+    capacidad: 50
+    seeds: [2026, 2027, 2028, 2029, 2030]
+    parametros:
+      generaciones: 50
+      tamano_poblacion: 40
+      torneo_k: 3
+      prob_tabu: 0.30
+      iter_tabu: 20
+      tenencia: 5
+      sample_size: 15
+      mutacion_prob: 0.0
+
   - id: caso_1
     nombre: "Escala Media"
     instancia: "data/raw/caso_1_50_clientes_q100.csv"

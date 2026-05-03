@@ -1,0 +1,72 @@
+{
+  "n_runs": 5,
+  "seeds": [
+    2026,
+    2027,
+    2028,
+    2029,
+    2030
+  ],
+  "costo": {
+    "min": 572.3446022860259,
+    "max": 594.5936307992253,
+    "media": 581.3750130978026,
+    "mediana": 575.1928637627868,
+    "std": 9.751708951747714
+  },
+  "vehiculos": {
+    "min": 6.0,
+    "max": 6.0,
+    "media": 6.0,
+    "mediana": 6.0,
+    "std": 0.0
+  },
+  "vehiculos_distribucion": [
+    6,
+    6,
+    6,
+    6,
+    6
+  ],
+  "tiempo_segundos": {
+    "min": 2.367939290998038,
+    "max": 2.657544207992032,
+    "media": 2.5325838661985474,
+    "mediana": 2.5616035409912,
+    "std": 0.10370276915792632
+  },
+  "generacion_mejor": {
+    "min": 25.0,
+    "max": 49.0,
+    "media": 38.6,
+    "mediana": 41.0,
+    "std": 9.243376006633074
+  },
+  "iteraciones_tabu_total": 59120,
+  "aceptaciones_no_mejorantes_tabu_total": 31244,
+  "utilizacion_promedio_pct": 87.0,
+  "utilizacion_distribucion_pct": [
+    87.0,
+    87.0,
+    87.0,
+    87.0,
+    87.0
+  ],
+  "demanda_total_instancia": 261,
+  "experimento_id": "base_tutorial",
+  "nombre": "Instancia base del tutorial",
+  "instancia": "data/raw/instancia_base_25_q50.csv",
+  "instancia_hash": "814dbef1d6f6738f51c79760d38600b0",
+  "capacidad": 50,
+  "parametros": {
+    "generaciones": 50,
+    "tamano_poblacion": 40,
+    "torneo_k": 3,
+    "prob_tabu": 0.3,
+    "iter_tabu": 20,
+    "tenencia": 5,
+    "sample_size": 15,
+    "mutacion_prob": 0.0
+  },
+  "fallos": []
+}

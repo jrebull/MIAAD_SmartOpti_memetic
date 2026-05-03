@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 
+import base_tutorial from "~/assets/data/base_tutorial.json";
 import caso_1 from "~/assets/data/caso_1.json";
 import caso_2 from "~/assets/data/caso_2.json";
 import caso_3 from "~/assets/data/caso_3.json";
@@ -15,7 +16,7 @@ interface Nodo {
 const route = useRoute();
 const id = String(route.params.id);
 
-const detalleMap: Record<string, unknown> = { caso_1, caso_2, caso_3 };
+const detalleMap: Record<string, unknown> = { base_tutorial, caso_1, caso_2, caso_3 };
 const detalle = detalleMap[id] as any;
 
 function fmt(x?: number, dec = 2): string {

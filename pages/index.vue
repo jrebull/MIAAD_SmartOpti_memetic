@@ -2,8 +2,8 @@
 import resumen from "~/assets/data/resumen_experimentos.json";
 
 const stats = [
-  { valor: "3", etiqueta: "Escenarios" },
-  { valor: "15", etiqueta: "Runs (multi-seed)" },
+  { valor: "4", etiqueta: "Escenarios" },
+  { valor: "20", etiqueta: "Runs (multi-seed)" },
   { valor: "84", etiqueta: "Tests verdes" },
   { valor: "100 %", etiqueta: "Factibilidad" },
 ];

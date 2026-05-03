@@ -1,0 +1,106 @@
+{
+  "seed": 2028,
+  "experimento_id": "base_tutorial",
+  "costo_final": 572.3446022860259,
+  "num_vehiculos": 6,
+  "rutas": [
+    [
+      0,
+      10,
+      21,
+      15,
+      9,
+      16,
+      0
+    ],
+    [
+      0,
+      22,
+      20,
+      13,
+      11,
+      0
+    ],
+    [
+      0,
+      18,
+      3,
+      5,
+      4,
+      0
+    ],
+    [
+      0,
+      1,
+      12,
+      19,
+      8,
+      14,
+      0
+    ],
+    [
+      0,
+      2,
+      25,
+      23,
+      17,
+      0
+    ],
+    [
+      0,
+      24,
+      6,
+      7,
+      0
+    ]
+  ],
+  "cargas": [
+    46,
+    46,
+    50,
+    44,
+    47,
+    28
+  ],
+  "mejor_cromosoma": [
+    10,
+    21,
+    15,
+    9,
+    16,
+    22,
+    20,
+    13,
+    11,
+    18,
+    3,
+    5,
+    4,
+    1,
+    12,
+    19,
+    8,
+    14,
+    2,
+    25,
+    23,
+    17,
+    24,
+    6,
+    7
+  ],
+  "configuracion": {
+    "generaciones": 50,
+    "tamano_poblacion": 40,
+    "torneo_k": 3,
+    "prob_tabu": 0.3,
+    "iter_tabu": 20,
+    "tenencia": 5,
+    "sample_size": 15,
+    "seed": 2028,
+    "capacidad": 50,
+    "mutacion_prob": 0.0
+  },
+  "tiempo_ejecucion": 2.367939290998038,
+  "generacion_mejor": 25
+}
