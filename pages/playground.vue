@@ -119,46 +119,81 @@ async function inicializarPyodide(): Promise<void> {
   }
 }
 
+function animarConvergencia(historico: number[]): void {
+  // Reproduce el histórico generación a generación (~50 ms cada una)
+  // para que el usuario vea la curva crecer aunque el cómputo haya sido bloqueante.
+  if (!historico.length) return;
+  const total = historico.length;
+  const intervalo = Math.max(15, Math.min(80, Math.floor(2500 / total)));
+  let i = 1;
+  progreso.value = {
+    gen: 0,
+    total_gen: total - 1,
+    mejor_global: historico[0],
+    mejor_gen: historico[0],
+    promedio: historico[0],
+    diversidad: 1.0,
+    mejor_cromosoma: [],
+  };
+  const id = setInterval(() => {
+    if (i >= total) {
+      clearInterval(id);
+      return;
+    }
+    progreso.value = {
+      gen: i,
+      total_gen: total - 1,
+      mejor_global: historico[i],
+      mejor_gen: historico[i],
+      promedio: historico[i],
+      diversidad: 1.0,
+      mejor_cromosoma: [],
+    };
+    i++;
+  }, intervalo);
+}
+
 async function correr(): Promise<void> {
   if (estado.value !== "lista" && estado.value !== "terminada") return;
   estado.value = "corriendo";
   resultado.value = null;
   progreso.value = null;
-  mensaje.value = "Corriendo memético…";
+  mensaje.value = "Procesando — Pyodide está corriendo Python en este navegador. No cierres la pestaña (~5–60 s según parámetros).";
+
+  // Cede el hilo para que la UI redibuje el "Corriendo" antes de bloquear.
+  await new Promise((r) => setTimeout(r, 30));
 
   try {
-    // Callback que invoca runner.py por generación. JS recibe un string JSON.
-    const onGenJs = (jsonStr: string) => {
-      try {
-        const ev = JSON.parse(jsonStr) as ProgresoEvento;
-        progreso.value = ev;
-      } catch {
-        /* ignorar parseo */
-      }
-    };
+    // Inyecta los parámetros como globales Python y ejecuta vía runPythonAsync.
+    // Este patrón evita problemas de binding al llamar callKwargs sobre un PyProxy.
+    pyodide.globals.set("ui_seed", seed.value);
+    pyodide.globals.set("ui_generaciones", generaciones.value);
+    pyodide.globals.set("ui_tamano_poblacion", tamano_poblacion.value);
+    pyodide.globals.set("ui_torneo_k", torneo_k.value);
+    pyodide.globals.set("ui_prob_tabu", prob_tabu.value);
+    pyodide.globals.set("ui_iter_tabu", iter_tabu.value);
+    pyodide.globals.set("ui_tenencia", tenencia.value);
+    pyodide.globals.set("ui_sample_size", sample_size.value);
 
-    // Yield control al event loop antes de empezar (UI redraw).
-    await new Promise((r) => setTimeout(r, 30));
-
-    const callable = pyodide.globals
-      .get("runner")
-      .correr_playground.callKwargs;
-
-    // Ejecutar.
-    const jsonResultado: string = await callable({
-      seed: seed.value,
-      generaciones: generaciones.value,
-      tamano_poblacion: tamano_poblacion.value,
-      torneo_k: torneo_k.value,
-      prob_tabu: prob_tabu.value,
-      iter_tabu: iter_tabu.value,
-      tenencia: tenencia.value,
-      sample_size: sample_size.value,
-      on_generation: onGenJs,
-    });
-    resultado.value = JSON.parse(jsonResultado) as ResultadoFinal;
+    const code = `
+runner.correr_playground(
+    seed=int(ui_seed),
+    generaciones=int(ui_generaciones),
+    tamano_poblacion=int(ui_tamano_poblacion),
+    torneo_k=int(ui_torneo_k),
+    prob_tabu=float(ui_prob_tabu),
+    iter_tabu=int(ui_iter_tabu),
+    tenencia=int(ui_tenencia),
+    sample_size=int(ui_sample_size),
+)
+`;
+    const jsonResultado: string = await pyodide.runPythonAsync(code);
+    const datos = JSON.parse(jsonResultado) as ResultadoFinal;
+    resultado.value = datos;
     estado.value = "terminada";
-    mensaje.value = `Terminado en ${resultado.value.tiempo_segundos.toFixed(2)} s.`;
+    mensaje.value = `Terminado en ${datos.tiempo_segundos.toFixed(2)} s.`;
+    // Animación retro de la convergencia.
+    animarConvergencia(datos.historico_convergencia);
   } catch (e: any) {
     estado.value = "error";
     errorMsg.value = String(e?.message ?? e);
